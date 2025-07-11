@@ -25,8 +25,3 @@ async def start_introduction(message: Message):
    await message.answer("""Мы тебя очень ждали и хотим познакомиться! Расскажи о себе, отвечая на вопросы:
 """
 )
-@router.message(lambda message: message.text == "START")
-async def handle_start_button(message: Message):
-    # Отправляем ответ как будто ввели /start/
-    await message.answer("Запускаем процесс...")
-    await message.answer(f"Команда: /start/")

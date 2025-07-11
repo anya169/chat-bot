@@ -1,0 +1,24 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Список сотрудников</title>
+</head>
+<body>
+   <h1>Список молодых сотрудников</h1>
+   
+   <ul>
+      {% for employee in employees %}
+      <li>
+         <span class="employee-name">{{ employee.surname }} {{ employee.name }}</span>
+         <div class="employee-dept">Отдел: {{ employee.department.name }}</div>
+         <div>Табельный номер: {{ employee.service_number }}</div>
+         <div>Дата приёма: {{ employee.hire_date|date:"d.m.Y" }}</div>
+      </li>
+      {% empty %}
+      <li>Нет сотрудников для отображения</li>
+      {% endfor %}
+   </ul>
+</body>
+</html>

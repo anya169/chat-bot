@@ -1,21 +1,9 @@
 from django.shortcuts import render
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework import status
-from .serializers import *
+from .models import *
 
 
-@api_view(['GET', 'POST'])
 def young_employee_list(request):
-   if request.method == 'GET':
-      data = Employee.objects.filter(is_curator=False, is_admin=False)
-      serializer = EmployeeSerializer(data, context={'request': request}, many=True)
-      return Response(serializer.data)
-   elif request.method == 'POST':
-      serializer = EmployeeSerializer(data=request.data)
-      if serializer.is_valid():
-         serializer.save()
-         return Response(status=status.HTTP_201_CREATED)
-      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   employees = Employee.objects.filter(is_curator=False, is_admin=False)
+   return render(request, 'employees/list.html', {'employees': employees})
 
 
