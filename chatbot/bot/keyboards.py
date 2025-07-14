@@ -138,3 +138,32 @@ def question_kb(user_telegram_id: int):
         one_time_keyboard = True # клавиатура скроется после нажатия
     )
     return keyboard
+
+# клавиатура с кнопкой "Готов(а)"
+def ready_kb(user_telegram_id: int):
+    kb_list = [
+        [KeyboardButton(text = "Готов(а)")]
+    ]
+    if user_telegram_id in admins:
+        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+    keyboard = ReplyKeyboardMarkup(
+        keyboard = kb_list,
+        resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
+        one_time_keyboard = True # клавиатура скроется после нажатия
+    )
+    return keyboard
+
+# клавиатура да/нет
+def yes_or_no_kb(user_telegram_id: int):
+    kb_list = [
+        [KeyboardButton(text = "Да")],
+        [KeyboardButton(text = "Нет")]
+    ]
+    if user_telegram_id in admins:
+        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+    keyboard = ReplyKeyboardMarkup(
+        keyboard = kb_list,
+        resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
+        one_time_keyboard = True # клавиатура скроется после нажатия
+    )
+    return keyboard
