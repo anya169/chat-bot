@@ -1,0 +1,30 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Личный кабинет</title>
+   <link rel="stylesheet" href="{% static 'css/common.css' %}">
+</head>
+<body>
+   <div class="sidebar">
+      <ul>
+         <div class="sidebar__item">ПРОФИЛЬ</div>
+         <li class="sidebar__subitem"><a href="#">Личный кабинет</a></li>
+         <li class="sidebar__subitem"><a href="#">Уведомления</a></li>
+         <div class="sidebar__item">СОТРУДНИКИ</div>
+         <li class="sidebar__subitem"><a href="#">Список сотрудников</a></li>
+         <li class="sidebar__subitem"><a href="#">Сформировать отчет</a></li>
+         <div class="sidebar__item">СТАТИСТИКА</div>
+         <li class="sidebar__subitem"><a href="#">Посмотреть статистику</a></li>
+      </ul>
+   </div>
+   <div class="account">
+      <span class="employee__name">{{ employee.name }}</span>
+      <div class="employee__filial">Филиал: {{ employee.filial.name }}</div>
+      <div class="employee__struct">Подразделение: {{ employee.struct.name }}</div>
+      <div class="employee__numtab">Табельный номер: {{ employee.num_tab }}</div>
+      <div class="employee__numtab">Количество подопечных сотрудников: {{ count }}</div>     
+   </div>
+</body>
+</html>   

@@ -13,6 +13,7 @@
       <li>
          <span class="employee__name">{{ employee.name }}</span>
          <div class="employee__filial">Филиал: {{ employee.filial.name }}</div>
+         <div class="employee__struct">Подразделение: {{ employee.struct.name }}</div>
          <div class="employee__numtab">Табельный номер: {{ employee.num_tab }}</div>
          <div class="employee__hiredate">Дата приёма: {{ employee.hire_date|date:"d.m.Y" }}</div>
       </li>

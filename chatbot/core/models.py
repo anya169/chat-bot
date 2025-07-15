@@ -15,9 +15,9 @@ class Employee(models.Model):
    is_can_manage_global_groups = models.BooleanField(default=False, verbose_name='Может управлять глобальными группами')
    is_can_view_all_forms = models.BooleanField(default=False, verbose_name='Может просматривать все формы')
    is_curator = models.BooleanField(default=False, verbose_name='Является ли куратором')
-   telegram_id = models.IntegerField(unique=True, verbose_name="Telegram ID")
-   hire_date = models.DateField(verbose_name="Дата приёма на работу")
-   telegram_registration_date = models.DateField(auto_now_add=True, verbose_name="Дата первого обращения к боту")
+   telegram_id = models.IntegerField(null=True, blank=True, verbose_name="Telegram ID")
+   hire_date = models.DateField(null=True, blank=True, verbose_name="Дата приёма на работу")
+   telegram_registration_date = models.DateField(null=True, blank=True, auto_now_add=True, verbose_name="Дата первого обращения к боту")
    curator_login = models.CharField(max_length=200, null=True, blank=True, verbose_name='Логин куратора')
 
    def __str__(self):
@@ -32,7 +32,7 @@ class Employee(models.Model):
 class Struct(models.Model):
    objects = models.Manager()
    
-   name = models.CharField(max_length=100, unique=True, verbose_name="Название подразделения")
+   name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Название подразделения")
   
    def __str__(self):
       return self.name
@@ -45,10 +45,12 @@ class Struct(models.Model):
 class Poll(models.Model):
    objects = models.Manager()
    
-   name = models.CharField(verbose_name='Название опроса')
-   description = models.CharField(verbose_name='Описание опроса')   
-   duration = models.DurationField(blank=True)
-   is_unexpected = models.BooleanField(verbose_name='Является ли внеплановым')      
+   name = models.CharField(null=True, blank=True, verbose_name='Название опроса')
+   description = models.CharField(null=True, blank=True,verbose_name='Описание опроса')   
+   duration = models.DurationField(null=True,  blank=True, verbose_name='Время, через которое запускается опрос')
+   submission_date = models.DurationField(null=True, blank=True, verbose_name='Дата создания')
+   is_unexpected = models.BooleanField(default=False, verbose_name='Является ли внеплановым') 
+        
 
    def __str__(self):
       return self.name
@@ -74,7 +76,7 @@ class Filial(models.Model):
 class Question(models.Model):
    objects = models.Manager()
    
-   name = models.CharField(verbose_name='Название вопроса')
+   name = models.CharField(null=True, blank=True, verbose_name='Название вопроса')
    poll = models.ForeignKey(
       'Poll',
       on_delete=models.CASCADE
@@ -92,7 +94,8 @@ class Question(models.Model):
 class Answer(models.Model):
    objects = models.Manager()
    
-   name = models.CharField(verbose_name='Содержимое ответа')
+   name = models.CharField(null=True, blank=True, verbose_name='Содержимое ответа')
+   submission_date = models.DurationField(null=True, blank=True, verbose_name='Дата создания')
    question = models.ForeignKey(
       'Question',
       on_delete=models.CASCADE
@@ -109,3 +112,19 @@ class Answer(models.Model):
       db_table = 'Answer'
       verbose_name = 'Ответ'
       verbose_name_plural = 'Ответы'
+
+class Special_Question(models.Model):
+   objects = models.Manager()
+   
+   name = models.CharField(null=True, blank=True, verbose_name='Название вопроса')
+   answer = models.CharField(null=True, blank=True, verbose_name='Ответ на вопрос')
+   employee_id = models.ForeignKey('Employee', null=True, blank=True, related_name='users', on_delete=models.DO_NOTHING, verbose_name='ID')
+
+   
+   def __str__(self):
+      return self.name
+   
+   class Meta:
+      db_table = 'Special_Question'
+      verbose_name = 'Специальный вопрос'
+      verbose_name_plural = 'Специальные вопросы'
