@@ -1,0 +1,32 @@
+@import url('font.css');
+
+
+.login{
+   width: 500px;
+   height: 500px;
+   font-family: 'Helios', sans-serif;
+   font-size: 14px;
+   border: 1px solid #0078C1;
+   align-self: center;
+   align-items: center;
+   justify-self: center;
+   justify-items: center;
+   color:#0078C1;
+}
+.login__input{
+   border: 1px solid #0078C1;
+   color: #0078C1;
+}
+.login__header{
+   font-size: 16px;
+   justify-self: center;
+}
+.login__button {
+   text-align: center;
+   padding: 10px;
+   background-color: #FFFFFF;
+   color: #0078C1;
+   border: 1px solid #0078C1;
+   border-radius: 10px;
+   cursor: pointer;
+}

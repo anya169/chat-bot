@@ -1,18 +1,27 @@
 from django.db import models
 
 class Employee(models.Model):
-   service_number = models.IntegerField(unique=True, primary_key=True, verbose_name="Табельный номер")
-   name = models.CharField(max_length=30, verbose_name="Имя")
-   surname = models.CharField(max_length=100, verbose_name="Фамилия")
-   department = models.ForeignKey(
-      'Department',
-      on_delete=models.CASCADE
-   )
-   is_curator = models.BooleanField(verbose_name='Является ли куратором')
-   is_admin = models.BooleanField(verbose_name='Является ли администратором')
+   objects = models.Manager()
+   
+   num_tab = models.CharField(max_length=200, null=True, blank=True, verbose_name='Табельный номер')
+   name = models.CharField(max_length=200, null=True, blank=True, verbose_name='ФИО')
+   post = models.CharField(max_length=200, null=True, blank=True, verbose_name='Должность')
+   email = models.CharField(max_length=200, null=True, blank=True, verbose_name='Почта')
+   filial = models.ForeignKey('Filial', null=True, blank=True, related_name='users', on_delete=models.DO_NOTHING, verbose_name='Филиал')
+   struct = models.ForeignKey('Struct', null=True, blank=True, related_name='users', on_delete=models.DO_NOTHING, verbose_name='Подразделение')
+   login = models.CharField(max_length=200, null=True, blank=True, verbose_name='Логин')
+   is_del = models.BooleanField(default=False, verbose_name='Уволен')
+   is_admin = models.BooleanField(default=False, verbose_name='Администратор')
+   is_can_manage_global_groups = models.BooleanField(default=False, verbose_name='Может управлять глобальными группами')
+   is_can_view_all_forms = models.BooleanField(default=False, verbose_name='Может просматривать все формы')
+   is_curator = models.BooleanField(default=False, verbose_name='Является ли куратором')
    telegram_id = models.IntegerField(unique=True, verbose_name="Telegram ID")
    hire_date = models.DateField(verbose_name="Дата приёма на работу")
    telegram_registration_date = models.DateField(auto_now_add=True, verbose_name="Дата первого обращения к боту")
+   curator_login = models.CharField(max_length=200, null=True, blank=True, verbose_name='Логин куратора')
+
+   def __str__(self):
+      return self.name
 
    class Meta:
       db_table = 'Employee'
@@ -20,36 +29,60 @@ class Employee(models.Model):
       verbose_name_plural = "Сотрудники"
 
 
-class Department(models.Model):
-   department_id = models.IntegerField(unique=True, primary_key=True, verbose_name='ID отдела')
-   department_name = models.CharField(max_length=100, unique=True, verbose_name="Название отдела")
+class Struct(models.Model):
+   objects = models.Manager()
+   
+   name = models.CharField(max_length=100, unique=True, verbose_name="Название подразделения")
+  
+   def __str__(self):
+      return self.name
   
    class Meta:
-      db_table = 'Department'
-      verbose_name = "Отдел"
-      verbose_name_plural = "Отделы"
+      db_table = 'Struct'
+      verbose_name = "Подразделение"
+      verbose_name_plural = "Подразделения"
       
 class Poll(models.Model):
-   poll_id = models.IntegerField(primary_key=True, unique=True, verbose_name='ID опроса')
-   poll_name = models.CharField(verbose_name='Название опроса')
-   poll_description = models.CharField(verbose_name='Описание опроса')   
-   poll_duration = models.DurationField(blank=True)
+   objects = models.Manager()
+   
+   name = models.CharField(verbose_name='Название опроса')
+   description = models.CharField(verbose_name='Описание опроса')   
+   duration = models.DurationField(blank=True)
    is_unexpected = models.BooleanField(verbose_name='Является ли внеплановым')      
 
+   def __str__(self):
+      return self.name
+   
    class Meta:
       db_table = 'Poll'
       verbose_name = 'Опрос'
       verbose_name_plural = 'Опросы'
 
+class Filial(models.Model):
+   objects = models.Manager()
+   
+   name = models.TextField(max_length=1000, null=True, blank=True, verbose_name='Название')
+
+   def __str__(self):
+      return self.name
+
+   class Meta:
+      verbose_name = "Филиал"
+      verbose_name_plural = "Филиалы"
+      db_table = 'Filial'
 
 class Question(models.Model):
-   question_id = models.IntegerField(primary_key=True, unique=True, verbose_name='ID вопроса')
-   question_name = models.CharField(verbose_name='Название вопроса')
+   objects = models.Manager()
+   
+   name = models.CharField(verbose_name='Название вопроса')
    poll = models.ForeignKey(
       'Poll',
       on_delete=models.CASCADE
    )
-
+   
+   def __str__(self):
+      return self.name
+   
    class Meta:
       db_table = 'Question'
       verbose_name = 'Вопрос'
@@ -57,17 +90,21 @@ class Question(models.Model):
 
 
 class Answer(models.Model):
-   answer_id = models.IntegerField(primary_key=True, unique=True, verbose_name='ID ответа')
-   answer_name = models.CharField(verbose_name='Содержимое ответа')
+   objects = models.Manager()
+   
+   name = models.CharField(verbose_name='Содержимое ответа')
    question = models.ForeignKey(
       'Question',
       on_delete=models.CASCADE
    )
-   service_number = models.ForeignKey(
+   login = models.ForeignKey(
       'Employee',
       on_delete=models.CASCADE
    )
 
+   def __str__(self):
+      return self.name
+   
    class Meta:
       db_table = 'Answer'
       verbose_name = 'Ответ'
