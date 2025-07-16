@@ -12,4 +12,4 @@ async def cmd_start(message: Message):
                          'Вместе мы найдем ответы на все интересующие тебя вопросы.\n\n'
                          'Но для начала давай знакомиться!\n'
                          'Расскажи о себе, отвечая на вопросы, для этого нажми на кнопку \"Рассказать о себе\".',
-                         reply_markup = tell_about_myself_kb(message.from_user.id)) # бот отправляет сообщение, появляется клавиатура tell_about_myself_kb
+                         reply_markup = tell_about_myself_kb(message.from_user.id))

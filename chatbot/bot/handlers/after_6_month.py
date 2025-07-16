@@ -10,7 +10,7 @@ from keyboards import ready_kb, question_kb # клавиатуры
 
 # время, через которое бот отправит сообщение
 short_delay = 1
-long_delay = 15
+long_delay = 1
 
 # состояния бота
 class Form_6(StatesGroup):
