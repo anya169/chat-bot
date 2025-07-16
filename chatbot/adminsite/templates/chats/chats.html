@@ -1,0 +1,22 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Чаты</title>
+   <link rel="stylesheet" href="{% static 'css/common.css' %}">
+</head>
+<body>
+   <h1>Чаты с сотрудниками</h1>
+   
+   <ul>
+      {% for employee in employees_with_questions %}
+      <li>
+         <span class="employee__name">{{ employee.name }}</span>
+      </li>
+      {% empty %}
+      <li>Нет активных чатов</li>
+      {% endfor %}
+   </ul>
+</body>
+</html>

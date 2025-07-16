@@ -10,7 +10,8 @@ urlpatterns = [
     path('login_user/', login_user, name='login_user'), 
     path('admin/dashboard/', admin_account, name='admin_account'),
     path('curator/dashboard/', curator_account, name='curator_account'),
-    re_path(r'young_employees/$', young_employee_list),
+    re_path(r'young_employees/$', young_employee_list, name='young_employee_list'),
+    path('chats', chats, name='chats'),
 ] 
 
 if settings.DEBUG:

@@ -20,8 +20,10 @@ def login_user(request):
             
             # Перенаправляем по ролям
             if employee.is_admin:
+               request.session['user_login'] = employee.login
                return redirect('admin_account')
             elif employee.is_curator:
+               request.session['user_login'] = employee.login
                return redirect('curator_account')
             else:
                messages.error(request, 'Недостаточно прав для доступа')
@@ -49,10 +51,32 @@ def admin_account(request):
 def curator_account(request):
    return render(request, 'curator_account.html')
 
-#получение списка молодых сотрудников
+#получение списка молодых сотрудников 
 def young_employee_list(request):
-   employees = Employee.objects.filter(is_curator=False, is_admin=False)
+   cur_login = request.session.get('user_login')
+   employees = Employee.objects.filter(is_curator=False, is_admin=False, curator_login = cur_login)
    return render(request, 'employees/list.html', {'employees': employees})
 
-
+#чаты куратора
+def chats(request):
+   #извлекаем из сессии текущего куратора
+   cur_login = request.session.get('user_login')
+   #получаем всех его сотрудников
+   employees = Employee.objects.filter(curator_login = cur_login)
+   #получаем айди всех его сотрудников
+   employees_ids = []
+   for employee in employees:
+      employees_ids.append(employee.id)
+   #делаем выборку айди сотрудников
+   employees_ids_with_questions = (
+      Special_Question.objects
+      .filter(employee_id__in=employees_ids)  # только подопечные текущего куратора
+      .values_list('employee_id', flat=True)  # берём только ID сотрудников
+      .distinct()  # убираем дубликаты
+   )
+   #получаем сотрудников, у которых есть хотя бы один вопрос
+   employees_with_questions = list(
+      Employee.objects.filter(id__in=employees_ids_with_questions)
+   )
+   return render(request, 'chats.html', {'employees_with_questions': employees_with_questions})
    
