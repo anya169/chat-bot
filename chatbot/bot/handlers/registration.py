@@ -9,10 +9,18 @@ from aiogram.utils.chat_action import ChatActionSender
 from keyboards import service_number_kb, reviewed_kb, task_kb, done_kb, recommendations_kb, question_kb, branches_kb # клавиатуры
 from create_bot import media_dir # медиа
 from aiogram.types import CallbackQuery
-import os
 import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import os
+import django
+import sys
+from asgiref.sync import sync_to_async
+
+sys.path.append('C:/chat-bot/chatbot')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
+django.setup()
+from core.models import Employee, Filial, Poll, Answer, Question
 
 # время, через которое бот отправит сообщение
 short_delay = 1
@@ -32,10 +40,10 @@ class Form(StatesGroup):
     welcome_day_information = State()
     recommendations = State()
     
-poll_1_router = Router()
+registration_router = Router()
 
-@poll_1_router.message(Command('tell_about_myself')) # обработка команды /tell_about_myself
-@poll_1_router.message(F.text == 'Рассказать о себе') # обработка текстового сообщения "Рассказать о себе"
+@registration_router.message(Command('tell_about_myself')) # обработка команды /tell_about_myself
+@registration_router.message(F.text == 'Рассказать о себе') # обработка текстового сообщения "Рассказать о себе"
 # запуск процесса анкетирования, бот запрашивает фамилию
 # параметры: message - сообщение от пользователя, state - контекст состояния (в последующих функциях такие же параметры)
 async def capture_surname(message: Message, state: FSMContext):
@@ -44,7 +52,7 @@ async def capture_surname(message: Message, state: FSMContext):
         await message.answer('Введи свою фамилию:', reply_markup = ReplyKeyboardRemove())
     await state.set_state(Form.name)
 
-@poll_1_router.message(F.text, Form.name) # обработка текстового сообщения (F.text), с текущим состоянием Form.name
+@registration_router.message(F.text, Form.name) # обработка текстового сообщения (F.text), с текущим состоянием Form.name
 # бот запрашивает имя
 async def capture_name(message: Message, state: FSMContext):
     surname = message.text
@@ -59,7 +67,7 @@ async def capture_name(message: Message, state: FSMContext):
         await message.answer('Введи своё имя:')
     await state.set_state(Form.patronymic)
 
-@poll_1_router.message(F.text, Form.patronymic) # обработка текстового сообщения (F.text), с текущим состоянием Form.patronymic
+@registration_router.message(F.text, Form.patronymic) # обработка текстового сообщения (F.text), с текущим состоянием Form.patronymic
 # бот запрашивает отчество
 async def capture_patronymic(message: Message, state: FSMContext):
     name = message.text
@@ -74,7 +82,7 @@ async def capture_patronymic(message: Message, state: FSMContext):
         await message.answer('Введи своё отчество:')
     await state.set_state(Form.service_number)
 
-@poll_1_router.message(F.text, Form.service_number) # обработка текстового сообщения (F.text), с текущим состоянием Form.service_number
+@registration_router.message(F.text, Form.service_number) # обработка текстового сообщения (F.text), с текущим состоянием Form.service_number
 # бот запрашивает табельный номер
 async def capture_service_number(message: Message, state: FSMContext):
     patronymic = message.text
@@ -91,7 +99,7 @@ async def capture_service_number(message: Message, state: FSMContext):
         await message.answer(msg_text, reply_markup = service_number_kb(message.from_user.id))
     await state.set_state(Form.branch)
 
-@poll_1_router.message(F.text, Form.branch) # обработка текстового сообщения (F.text), с текущим состоянием Form.branch
+@registration_router.message(F.text, Form.branch) # обработка текстового сообщения (F.text), с текущим состоянием Form.branch
 # проводится проверка корректности введенного табельного номера, бот просит выбрать филиал из списка
 async def capture_branch(message: Message, state: FSMContext):
     if message.text == "Я не знаю свой табельный номер":
@@ -121,7 +129,7 @@ async def capture_branch(message: Message, state: FSMContext):
         await message.answer(msg_text, reply_markup = branches_kb())
     await state.set_state(Form.hire_date)
 
-@poll_1_router.callback_query(F.data.startswith("branch_"), Form.hire_date) # обработка данных callback, начинающихся с "branch_", с текущим состоянием Form.hire_date
+@registration_router.callback_query(F.data.startswith("branch_"), Form.hire_date) # обработка данных callback, начинающихся с "branch_", с текущим состоянием Form.hire_date
 # бот запрашивает дату трудоустройства
 # параметры: объект CallbackQuery с информацией о callback-запросе, state - контекст состояния
 async def capture_hire_date(callback: CallbackQuery, state: FSMContext):
@@ -135,7 +143,7 @@ async def capture_hire_date(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Form.curator_information)
     await callback.answer()
 
-@poll_1_router.message(F.text, Form.curator_information) # обработка текстового сообщения (F.text), с текущим состоянием Form.curator_information
+@registration_router.message(F.text, Form.curator_information) # обработка текстового сообщения (F.text), с текущим состоянием Form.curator_information
 # бот присылает информацию о кураторе
 async def capture_curator_information(message: Message, state: FSMContext):
     date_pattern = r'^\d{2}\.\d{2}\.\d{4}$'
@@ -157,6 +165,23 @@ async def capture_curator_information(message: Message, state: FSMContext):
                             'Пожалуйста, введите корректную дату:')
         return
     await state.update_data(hire_date = message.text)
+    data = await state.get_data()
+    try:
+        filial, _ = await sync_to_async(Filial.objects.get_or_create)(name=data.get('branch'))
+        employee = Employee(
+            num_tab = data.get('service_number', 'Не указан'),
+            name = f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
+            filial=filial,
+            hire_date = hire_date,
+            telegram_id = message.from_user.id,
+            telegram_registration_date = datetime.now().date()
+        )
+        await sync_to_async(employee.save)()
+        await asyncio.sleep(short_delay)
+    except Exception as e:
+        print(f"Ошибка при сохранении данных: {e}")
+        await asyncio.sleep(short_delay)
+        await message.answer('Произошла ошибка при сохранении ваших данных. Пожалуйста, попробуйте позже.')
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer('Спасибо за ответы!')
@@ -176,7 +201,7 @@ async def capture_curator_information(message: Message, state: FSMContext):
         await message.answer_video(video = video_file, reply_markup = reviewed_kb(message.from_user.id))
     await state.set_state(Form.do_task)
 
-@poll_1_router.message(F.text == 'Ознакомился(ась)', Form.do_task) # обработка текстового сообщения "Ознакомился(ась)", с текущим состоянием Form.do_task
+@registration_router.message(F.text == 'Ознакомился(ась)', Form.do_task) # обработка текстового сообщения "Ознакомился(ась)", с текущим состоянием Form.do_task
 # бот просит выполнить первое задание
 async def capture_do_task(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
@@ -187,7 +212,7 @@ async def capture_do_task(message: Message, state: FSMContext):
                              'Для этого нажми на кнопку \"Задание\".', reply_markup = task_kb(message.from_user.id))
     await state.set_state(Form.task)
 
-@poll_1_router.message(F.text == "Задание", Form.task) # обработка текстового сообщения "Задание", с текущим состоянием Form.task
+@registration_router.message(F.text == "Задание", Form.task) # обработка текстового сообщения "Задание", с текущим состоянием Form.task
 # бот присылает первое задание
 async def capture_task(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
@@ -199,7 +224,7 @@ async def capture_task(message: Message, state: FSMContext):
                              reply_markup = done_kb(message.from_user.id), parse_mode = "HTML")
     await state.set_state(Form.welcome_day_information)
 
-@poll_1_router.message(F.text == "Я заполнил(а)", Form.welcome_day_information) # обработка текстового сообщения "Я заполнил(а)", с текущим состоянием Form.welcome_day_information
+@registration_router.message(F.text == "Я заполнил(а)", Form.welcome_day_information) # обработка текстового сообщения "Я заполнил(а)", с текущим состоянием Form.welcome_day_information
 # бот присылает информацию о welcome-дне
 async def capture_welcome_day_information(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
@@ -216,7 +241,7 @@ async def capture_welcome_day_information(message: Message, state: FSMContext):
                              'просто нажми кнопку \"Получить рекомендации\".', reply_markup = recommendations_kb(message.from_user.id))
     await state.set_state(Form.recommendations)
 
-@poll_1_router.message(F.text == "Получить рекомендации", Form.recommendations) # обработка текстового сообщения "Получить рекомендации", с текущим состоянием Form.recommendations
+@registration_router.message(F.text == "Получить рекомендации", Form.recommendations) # обработка текстового сообщения "Получить рекомендации", с текущим состоянием Form.recommendations
 # бот даёт рекомендации
 async def capture_recommendations(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):

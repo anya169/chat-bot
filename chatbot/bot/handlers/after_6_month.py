@@ -7,6 +7,16 @@ from aiogram.filters.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.chat_action import ChatActionSender
 from keyboards import ready_kb, question_kb # клавиатуры
+from datetime import date, timedelta
+import os
+import django
+import sys
+from asgiref.sync import sync_to_async
+
+sys.path.append('C:/chat-bot/chatbot')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
+django.setup()
+from core.models import Employee, Answer
 
 # время, через которое бот отправит сообщение
 short_delay = 1
@@ -45,6 +55,19 @@ async def how_are_you(message: Message, state: FSMContext):
 
 @after_6_month_router.message(F.text, Form_6.question_1)
 async def question_1(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+    today = date.today()
+    hire_date = employee.hire_date
+    delta = today - hire_date
+    days_passed = delta.days
+    employee_answer = Answer(
+        name =  message.text,
+        submission_date = timedelta(days = days_passed),
+        login_id = employee.id,
+        question_id = 31
+    )
+    await sync_to_async(employee_answer.save)()
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Как часто ты встречаешься со своим руководителем?")
@@ -52,6 +75,19 @@ async def question_1(message: Message, state: FSMContext):
 
 @after_6_month_router.message(F.text, Form_6.question_2)
 async def question_2(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+    today = date.today()
+    hire_date = employee.hire_date
+    delta = today - hire_date
+    days_passed = delta.days
+    employee_answer = Answer(
+        name =  message.text,
+        submission_date = timedelta(days = days_passed),
+        login_id = employee.id,
+        question_id = 32
+    )
+    await sync_to_async(employee_answer.save)()
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Комфортно ли тебе взаимодействовать с руководителем?")
@@ -59,6 +95,19 @@ async def question_2(message: Message, state: FSMContext):
 
 @after_6_month_router.message(F.text, Form_6.question_3)
 async def question_3(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+    today = date.today()
+    hire_date = employee.hire_date
+    delta = today - hire_date
+    days_passed = delta.days
+    employee_answer = Answer(
+        name =  message.text,
+        submission_date = timedelta(days = days_passed),
+        login_id = employee.id,
+        question_id = 33
+    )
+    await sync_to_async(employee_answer.save)()
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Всегда ли руководитель и наставник дают тебе обратные ответы на вопросы?")
@@ -66,6 +115,19 @@ async def question_3(message: Message, state: FSMContext):
 
 @after_6_month_router.message(F.text, Form_6.question_4)
 async def question_4(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+    today = date.today()
+    hire_date = employee.hire_date
+    delta = today - hire_date
+    days_passed = delta.days
+    employee_answer = Answer(
+        name =  message.text,
+        submission_date = timedelta(days = days_passed),
+        login_id = employee.id,
+        question_id = 34
+    )
+    await sync_to_async(employee_answer.save)()
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Удалось ли принять участие в мероприятиях филиала?")
@@ -73,6 +135,19 @@ async def question_4(message: Message, state: FSMContext):
 
 @after_6_month_router.message(F.text, Form_6.question_5)
 async def question_5(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+    today = date.today()
+    hire_date = employee.hire_date
+    delta = today - hire_date
+    days_passed = delta.days
+    employee_answer = Answer(
+        name =  message.text,
+        submission_date = timedelta(days = days_passed),
+        login_id = employee.id,
+        question_id = 35
+    )
+    await sync_to_async(employee_answer.save)()
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Чего тебе не хватает для улучшения реализации трудовой деятельности?")
@@ -80,6 +155,19 @@ async def question_5(message: Message, state: FSMContext):
 
 @after_6_month_router.message(F.text, Form_6.question_6)
 async def question_6(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+    today = date.today()
+    hire_date = employee.hire_date
+    delta = today - hire_date
+    days_passed = delta.days
+    employee_answer = Answer(
+        name =  message.text,
+        submission_date = timedelta(days = days_passed),
+        login_id = employee.id,
+        question_id = 36
+    )
+    await sync_to_async(employee_answer.save)()
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Может есть волнующие моменты, которые тебя беспокоят?")
@@ -87,6 +175,19 @@ async def question_6(message: Message, state: FSMContext):
 
 @after_6_month_router.message(F.text, Form_6.result)
 async def result(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
+    employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+    today = date.today()
+    hire_date = employee.hire_date
+    delta = today - hire_date
+    days_passed = delta.days
+    employee_answer = Answer(
+        name =  message.text,
+        submission_date = timedelta(days = days_passed),
+        login_id = employee.id,
+        question_id = 37
+    )
+    await sync_to_async(employee_answer.save)()
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Мы стремимся к постоянному развитию наших сотрудников и предлагаем тебе пройти "
