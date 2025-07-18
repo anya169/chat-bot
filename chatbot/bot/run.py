@@ -7,8 +7,10 @@ from handlers.after_1_month import after_1_month_router
 from handlers.after_3_month import after_3_month_router
 from handlers.after_6_month import after_6_month_router
 from polls import initialize_poll_data
+from bot.utils import get_bot
 
 async def main():
+    bot = get_bot()
     # await initialize_poll_data() # использовать функцию только при первом запуске, потом нужно закомментировать
     dp.include_router(start_router)
     dp.include_router(question_router)
