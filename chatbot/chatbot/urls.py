@@ -8,10 +8,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login_page, name='login_page'),
     path('login_user/', login_user, name='login_user'), 
-    path('admin/dashboard/', admin_account, name='admin_account'),
-    path('curator/dashboard/', curator_account, name='curator_account'),
-    re_path(r'young_employees/$', young_employee_list, name='young_employee_list'),
-    path('chats', chats, name='chats'),
+    path('admin_account', admin_account, name='admin_account'),
+    path('curator_account', curator_account, name='curator_account'),
+    re_path('young_employees/', young_employee_list, name='young_employee_list'),
+    path('chats/', chats, name='chats'),
+    path('chat/<int:employee_id>/', chat_with_employee, name='chat_with_employee'),
 ] 
 
 if settings.DEBUG:

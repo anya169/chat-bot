@@ -2,9 +2,11 @@ from django.shortcuts import render, redirect
 from .models import *
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 
 
 #авторизация
+@csrf_exempt
 def login_user(request):
    if request.method == 'POST':
       username = request.POST.get("username")
@@ -45,11 +47,14 @@ def login_page(request):
 
 #личный кабинет администратора
 def admin_account(request):
-   return render(request, 'admin_account.html')
+   return render(request, 'personal_account/admin_account.html')
 
 #личный кабинет куратора
 def curator_account(request):
-   return render(request, 'curator_account.html')
+   cur_login = request.session.get('user_login')
+   employee = Employee.objects.filter(login = cur_login).first
+   count = Employee.objects.filter(curator_login = cur_login).count()
+   return render(request, 'personal_account/curator_account.html', {'employee': employee, 'count': count})
 
 #получение списка молодых сотрудников 
 def young_employee_list(request):
@@ -78,5 +83,18 @@ def chats(request):
    employees_with_questions = list(
       Employee.objects.filter(id__in=employees_ids_with_questions)
    )
-   return render(request, 'chats.html', {'employees_with_questions': employees_with_questions})
+   return render(request, 'chats/chats.html', {'employees_with_questions': employees_with_questions})
+
+
+#чат с сотрудником
+def chat_with_employee(request, employee_id):
+   employee = Employee.objects.filter(id=employee_id).first()
+   questions_answers = Special_Question.objects.filter(
+      employee_id=employee
+   ).order_by('submission_date')
+   
+   return render(request, 'chats/detailed_chat.html', {
+      'employee': employee,
+      'questions_answers': questions_answers
+   })
    

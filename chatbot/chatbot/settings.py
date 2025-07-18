@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'adminsite.apps.AdminsiteConfig',
     'core',
+    'channels',
     'bot.apps.BotConfig'
 ]
 
@@ -75,7 +76,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'chatbot.wsgi.application'
+ASGI_APPLICATION = 'chatbot.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
