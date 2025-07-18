@@ -12,7 +12,9 @@
    <ul>
       {% for employee in employees_with_questions %}
       <li>
-         <span class="employee__name">{{ employee.name }}</span>
+         <a href="{% url 'chat_with_employee' employee.id %}" class="employee__name">
+            {{ employee.name }}
+        </a>
       </li>
       {% empty %}
       <li>Нет активных чатов</li>
