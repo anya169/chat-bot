@@ -1,0 +1,76 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Чат с сотрудником</title>
+   <link rel="stylesheet" href="{% static 'css/common.css' %}">
+</head>
+<body>
+   <div class="chat__container">
+      <div class="chat__header">
+         <h2>Чат с {{ employee.name }}</h2>
+         <p>Должность: {{ employee.post }}</p>
+      </div>
+      
+      <div class="chat__messages" id="chat-messages">
+         {% for question_answer in questions_answers %}
+            <div class="message received">
+                  <p><strong>{{ employee.name }}:</strong> {{ question_answer.name }}</p>
+                  <small>{{ question_answer.submission_date|date:"d.m.Y H:i" }}</small>
+            </div>
+            {% if question_answer.answer %}
+                  <div class="message sent">
+                     <p><strong>Вы:</strong> {{ question_answer.answer }}</p>
+                     <small>{{ question_answer.submission_date|date:"d.m.Y H:i" }}</small>
+                  </div>
+            {% endif %} 
+         {% endfor %}       
+      </div>
+      
+      <div class="chat__input">
+         <form id="message-form">
+            <input class="input" type="text" id="message-input" placeholder="Введите сообщение..." required>
+            <button class="send-button" type="submit">Отправить</button>
+         </form>
+      </div>
+</body>
+<script>
+   //создаем вебсокет
+   const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${ {{ employee.id }} }/`);
+   //при получении нового сообщения от сервера вызываем функцию
+   chatSocket.onmessage = function(e) {
+      //преобразовываем объект json в строку
+      const data = JSON.parse(e.data);
+      //находим объект с сообщениями
+      const messages = document.getElementById('chat-messages');
+      
+      //создаем объект и присваиваем ему класс в зависимости от того, кому принадлежит сообщение
+      const messageDiv = document.createElement('div');
+      messageDiv.className = data.sender_id === "{{ request.user.username }}" ? "message sent" : "message received";
+      
+      //создаем элемент
+      messageDiv.innerHTML = `
+         <p><strong>${data.sender_id === "{{ request.user.username }}" ? 'Вы:' : 'Сотрудник:'}</strong> ${data.message}</p>
+         <small>${new Date().toLocaleString()}</small>
+      `;
+      
+      //добавляем в структуру и прокручиваем экран
+      messages.appendChild(messageDiv);
+      messages.scrollTop = messages.scrollHeight;
+   };
+   
+   //при нажатии кнопки 
+   document.getElementById('message-form').onsubmit = function(e) {
+      e.preventDefault();
+      const input = document.getElementById('message-input');
+      //отправляем введенное сообщение и очищаем поле ввода
+      chatSocket.send(JSON.stringify({
+         'message': input.value,
+         'sender_id': "{{ request.user.username }}"
+      }));
+      input.value = '';
+   };
+</script>
+
+</html>

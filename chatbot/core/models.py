@@ -118,7 +118,8 @@ class Special_Question(models.Model):
    
    name = models.CharField(null=True, blank=True, verbose_name='Название вопроса')
    answer = models.CharField(null=True, blank=True, verbose_name='Ответ на вопрос')
-   employee_id = models.ForeignKey('Employee', null=True, blank=True, related_name='users', on_delete=models.DO_NOTHING, verbose_name='ID')
+   submission_date = models.DurationField(null=True, blank=True, verbose_name='Дата создания')
+   employee = models.ForeignKey('Employee', null=True, blank=True, related_name='users', on_delete=models.DO_NOTHING, verbose_name='ID')
 
    
    def __str__(self):
