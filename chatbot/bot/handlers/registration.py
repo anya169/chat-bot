@@ -20,7 +20,7 @@ from asgiref.sync import sync_to_async
 sys.path.append('C:/chat-bot/chatbot')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
 django.setup()
-from core.models import Employee, Filial, Poll, Answer, Question
+from core.models import Employee, Filial
 
 # время, через которое бот отправит сообщение
 short_delay = 1
