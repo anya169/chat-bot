@@ -107,7 +107,7 @@ async def capture_branch(message: Message, state: FSMContext):
         msg_text = f'{data.get("name")}, выбери свой филиал из списка:'
         async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
             await asyncio.sleep(short_delay)
-            await message.answer(msg_text, reply_markup = branches_kb())
+            await message.answer(msg_text, reply_markup = await branches_kb())
         await state.set_state(Form.hire_date)
         return
     if not message.text.isdigit():
@@ -126,7 +126,7 @@ async def capture_branch(message: Message, state: FSMContext):
     msg_text = f'{data.get("name")}, выбери свой филиал из списка:'
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
-        await message.answer(msg_text, reply_markup = branches_kb())
+        await message.answer(msg_text, reply_markup = await branches_kb())
     await state.set_state(Form.hire_date)
 
 @registration_router.callback_query(F.data.startswith("branch_"), Form.hire_date) # обработка данных callback, начинающихся с "branch_", с текущим состоянием Form.hire_date
@@ -135,7 +135,7 @@ async def capture_branch(message: Message, state: FSMContext):
 async def capture_hire_date(callback: CallbackQuery, state: FSMContext):
     branch = callback.data.replace("branch_", "") # извлечение названия филиала из callback.data, удаляя префикс "branch_"
     await state.update_data(branch = branch)
-    await callback.message.answer(text = f"Выбран филиал: {branch}", reply_markup = ReplyKeyboardRemove())
+    # await callback.message.answer(text = f"Выбран филиал: {branch}", reply_markup = ReplyKeyboardRemove())
     data = await state.get_data()
     msg_text = f'{data.get("name")}, укажи дату приёма в компанию в формате DD.MM.YYYY (например, 01.01.2025):'
     await asyncio.sleep(short_delay)
@@ -156,13 +156,6 @@ async def capture_curator_information(message: Message, state: FSMContext):
     except ValueError:
         await asyncio.sleep(short_delay)
         await message.reply('Неверный формат даты. Пожалуйста, введите дату в формате DD.MM.YYYY:')
-        return
-    current_date = datetime.now().date()
-    delta = relativedelta(current_date, hire_date)
-    if delta.years > 0 or delta.months > 1:
-        await asyncio.sleep(short_delay)
-        await message.reply('Дата трудоустройства не может быть раньше, чем 1 месяц назад от текущей даты.\n'
-                            'Пожалуйста, введите корректную дату:')
         return
     await state.update_data(hire_date = message.text)
     data = await state.get_data()

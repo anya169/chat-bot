@@ -90,9 +90,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chatbot_db',
-        'USER': 'postgres',
-        'PASSWORD': 'root',
+        'NAME': 'chat_bot_db_2',
+        'USER': 'myuser',
+        'PASSWORD': '123456789',
         'HOST': 'localhost',
         'PORT': 5432,
     }
