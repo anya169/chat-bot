@@ -62,11 +62,11 @@ async def capture_name(message: Message, state: FSMContext):
         )
         await sync_to_async(special_question.save)()
 
-        # Отправляем через WebSocket
-        await send_via_websocket(
-            message_text=question,
-            sender_id=f"{employee.login}"
-        )
+        # # Отправляем через WebSocket
+        # await send_via_websocket(
+        #     message_text=question,
+        #     sender_id=f"{employee.login}"
+        # )
 
         await asyncio.sleep(short_delay)
         await message.answer("Ваш вопрос сохранен! Ожидайте ответа.")
