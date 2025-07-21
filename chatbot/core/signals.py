@@ -4,6 +4,7 @@ from core.models import Special_Question
 from asgiref.sync import async_to_sync
 from aiogram import Bot
 import asyncio
+from decouple import config
 
 bot_instance = None
 bot_lock = asyncio.Lock()
