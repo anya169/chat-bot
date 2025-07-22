@@ -13,6 +13,7 @@ import django
 import sys
 from asgiref.sync import sync_to_async
 
+
 sys.path.append('C:/chat-bot/chatbot')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
 django.setup()
@@ -24,20 +25,43 @@ class Form_question(StatesGroup):
 question_router = Router()
 short_delay = 1
 
-# WebSocket URL (замените на ваш реальный адрес)
 WEBSOCKET_URL = "ws://localhost:8000/ws/chat/"
+active_websockets = {}
+
+async def get_websocket_connection(employee_id):
+    if employee_id in active_websockets:
+        ws = active_websockets[employee_id]
+        if not ws.closed:
+            return ws
+    
+    try:
+        ws = await websockets.connect(
+            f"{WEBSOCKET_URL}{employee_id}/",
+            ping_interval=20,
+            close_timeout=10
+        )
+        active_websockets[employee_id] = ws
+        return ws
+    except Exception as e:
+        print(f"Ошибка подключения WebSocket: {e}")
+        return None
 
 async def send_via_websocket(employee_id, message_text, sender_id):
-    """Отправка сообщения через WebSocket"""
+    """Отправка сообщения через WebSocket """
     try:
-        async with websockets.connect(f"{WEBSOCKET_URL}{employee_id}/") as ws:
+        ws = await get_websocket_connection(employee_id)
+        if ws:
             await ws.send(json.dumps({
                 "message": message_text,
-                "sender_id": sender_id
+                "sender_id": sender_id  
             }))
             print(f"Сообщение отправлено через WebSocket: {message_text}")
     except Exception as e:
         print(f"Ошибка WebSocket: {e}")
+        # Удаляем нерабочее соединение
+        if employee_id in active_websockets:
+            del active_websockets[employee_id]
+        raise
 
 @question_router.message(Command('хочузадатьвопрос'))
 @question_router.message(F.text == "Хочу задать вопрос")
@@ -63,7 +87,7 @@ async def process_question(message: Message, state: FSMContext):
         # Сохраняем вопрос в базу
         special_question = Special_Question(
             name=question,
-            employee_id=employee.id
+            employee_id=employee.id,
         )
         await sync_to_async(special_question.save)()
         
@@ -84,3 +108,14 @@ async def process_question(message: Message, state: FSMContext):
         await message.answer('Произошла ошибка. Пожалуйста, попробуйте позже.')
     
     await state.clear()
+    
+async def close_all_websockets():
+    """Закрывает все WebSocket соединения при завершении"""
+    for ws in active_websockets.values():
+        if not ws.closed:
+            await ws.close()
+    active_websockets.clear()
+
+# Регистрируем обработчик закрытия
+import atexit
+atexit.register(lambda: asyncio.run(close_all_websockets()))

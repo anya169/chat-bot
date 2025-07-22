@@ -17,7 +17,7 @@ class Employee(models.Model):
    is_curator = models.BooleanField(default=False, verbose_name='Является ли куратором')
    telegram_id = models.IntegerField(null=True, blank=True, verbose_name="Telegram ID")
    hire_date = models.DateField(null=True, blank=True, verbose_name="Дата приёма на работу")
-   telegram_registration_date = models.DateField(null=True, blank=True, auto_now_add=True, verbose_name="Дата первого обращения к боту")
+   telegram_registration_date = models.DateField(null=True, blank=True, verbose_name="Дата первого обращения к боту")
    curator_login = models.CharField(max_length=200, null=True, blank=True, verbose_name='Логин куратора')
 
    def __str__(self):
@@ -118,7 +118,9 @@ class Special_Question(models.Model):
    
    name = models.CharField(null=True, blank=True, verbose_name='Название вопроса')
    answer = models.CharField(null=True, blank=True, verbose_name='Ответ на вопрос')
-   submission_date = models.DurationField(null=True, blank=True, verbose_name='Дата создания')
+   creation_question = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания вопроса')
+   creation_answer = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания ответа')
+
    employee = models.ForeignKey('Employee', null=True, blank=True, related_name='users', on_delete=models.DO_NOTHING, verbose_name='ID')
 
    

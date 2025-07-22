@@ -1,4 +1,5 @@
 {% load static %} 
+{% load tz %}
 
 <!DOCTYPE html>
 <html>
@@ -17,12 +18,12 @@
          {% for question_answer in questions_answers %}
             <div class="message received">
                   <p><strong>{{ employee.name }}:</strong> {{ question_answer.name }}</p>
-                  <small>{{ question_answer.submission_date|date:"d.m.Y H:i" }}</small>
+                  <small>{{ question_answer.creation_question|date:"d.m.Y H:i" }}</small>
             </div>
             {% if question_answer.answer %}
                   <div class="message sent">
                      <p><strong>Вы:</strong> {{ question_answer.answer }}</p>
-                     <small>{{ question_answer.submission_date|date:"d.m.Y H:i" }}</small>
+                     <small>{{ question_answer.creation_answer|date:"d.m.Y H:i" }}</small>
                   </div>
             {% endif %} 
          {% endfor %}       
@@ -44,14 +45,16 @@
       const data = JSON.parse(e.data);
       //находим объект с сообщениями
       const messages = document.getElementById('chat-messages');
-      
+      //получаем имя сотрудника
+      const employeeName = "{{ employee.name }}";
+
       //создаем объект и присваиваем ему класс в зависимости от того, кому принадлежит сообщение
       const messageDiv = document.createElement('div');
       messageDiv.className = data.sender_id === "{{ request.user.username }}" ? "message sent" : "message received";
       
       //создаем элемент
       messageDiv.innerHTML = `
-         <p><strong>${data.sender_id === "{{ request.user.username }}" ? 'Вы:' : 'Сотрудник:'}</strong> ${data.message}</p>
+         <p><strong>${data.sender_id === "{{ request.user.username }}" ? 'Вы:' : employeeName + ':'}</strong> ${data.message}</p>
          <small>${new Date().toLocaleString()}</small>
       `;
       

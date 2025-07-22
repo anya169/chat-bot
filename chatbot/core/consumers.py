@@ -34,22 +34,7 @@ class ChatConsumer(WebsocketConsumer):
       
       employee = Employee.objects.get(login=sender_id)
       
-      if not employee.is_curator:  #если это вопрос от сотрудника
-         # создаем новый вопрос
-        # Special_Question.objects.create(
-         #      name=message,
-         #      employee_id=employee.id
-         #)
-         print("это сотрудник")
-         async_to_sync(self.channel_layer.group_send)(
-                  self.room_group_name,
-                  {
-                     'type': 'chat_message',
-                     'message': message,
-                     'sender_id': sender_id
-                  }
-            )
-      else:  # если это сообщение от куратора
+      if employee.is_curator:  #если это сообщение от куратора
          print("это куратор")
          #находим последнее сообщение от сотрудника
          question = Special_Question.objects.filter(

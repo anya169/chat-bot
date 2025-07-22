@@ -91,7 +91,7 @@ def chat_with_employee(request, employee_id):
    employee = Employee.objects.filter(id=employee_id).first()
    questions_answers = Special_Question.objects.filter(
       employee_id=employee
-   ).order_by('submission_date')
+   ).order_by('creation_question')
    
    return render(request, 'chats/detailed_chat.html', {
       'employee': employee,
