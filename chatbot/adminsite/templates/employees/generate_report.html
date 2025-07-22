@@ -22,6 +22,9 @@
       <li>Нет сотрудников для отображения</li>
       {% endfor %}
    </ul>
-   <button class="send-button" type="submit" id="send-button">Сформировать отчет</button>
+   <form action="{% url 'download_report' %}" method="post">
+         {% csrf_token %}
+         <button type="submit">Сформировать отчёт</button>
+   </form>
 </body>
 </html>

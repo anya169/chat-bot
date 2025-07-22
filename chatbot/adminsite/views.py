@@ -3,6 +3,9 @@ from .models import *
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
+import os
+from django.http import FileResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
 
 
 #авторизация
@@ -97,4 +100,31 @@ def chat_with_employee(request, employee_id):
       'employee': employee,
       'questions_answers': questions_answers
    })
+  
+#страница для формирования отчета  
+def report_page(request):
+   employees = Employee.objects.filter(curator_login=request.user.username)
+   return render(request, 'employees/generate_report.html', {'employees': employees})
+
+#генерация и скачивание отчета
+@require_http_methods(["GET", "POST"])
+def download_report(request):
+   try:
+      #генерируем отчет 
+      #импортируем функцию
+      from .generate_report import generate_report
+      #передаем логин куратора
+      report_filename = generate_report(request.user.username)
+      
+      if not report_filename or not os.path.exists(report_filename):
+         from django.http import HttpResponse
+         return HttpResponse("Ошибка: файл отчета не найден", status=500)
+      
+      #открываем файл в бинарном режиме
+      file = open(report_filename, 'rb')
+      response = FileResponse(file)
    
+      return response
+      
+   except Exception as e:
+      return HttpResponse(f"Ошибка: {str(e)}", status=500)

@@ -13,6 +13,8 @@ urlpatterns = [
     re_path('young_employees/', young_employee_list, name='young_employee_list'),
     path('chats/', chats, name='chats'),
     path('chat/<int:employee_id>/', chat_with_employee, name='chat_with_employee'),
+    path('report/', report_page, name='report_page'),
+    path('download/', download_report, name='download_report'),
 ] 
 
 if settings.DEBUG:
