@@ -1,4 +1,6 @@
 import asyncio
+import os
+import django
 from create_bot import bot, dp
 from handlers.start import start_router
 from handlers.question import question_router
@@ -11,10 +13,13 @@ from filials import initialize_filials_data
 from bot.utils import get_bot
 from scheduler import schedule_polls
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chatbot.settings")
+django.setup() 
+
 async def main():
     bot = get_bot()
-    await initialize_poll_data() # использовать функцию только при первом запуске, потом нужно закомментировать
-    await initialize_filials_data() # использовать функцию только при первом запуске, потом нужно закомментировать
+    #await initialize_poll_data() # использовать функцию только при первом запуске, потом нужно закомментировать
+   #await initialize_filials_data() # использовать функцию только при первом запуске, потом нужно закомментировать
     dp.include_router(start_router)
     dp.include_router(question_router)
     dp.include_router(registration_router)

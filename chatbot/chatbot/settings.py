@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'adminsite.apps.AdminsiteConfig',
-    'core',
+    'core.apps.CoreConfig',
     'channels',
     'bot.apps.BotConfig'
 ]
@@ -90,9 +90,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chat_bot_db_2',
-        'USER': 'myuser',
-        'PASSWORD': '123456789',
+        'NAME': 'chatbot_db',
+        'USER': 'postgres',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': 5432,
     }

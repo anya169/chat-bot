@@ -7,7 +7,7 @@ import sys
 from asgiref.sync import sync_to_async
 import asyncio
 
-sys.path.append('C:/chat-bot/chatbot')
+sys.path.append(r'C:\Users\oxina\OneDrive\Рабочий стол\работа\chat-bot\chatbot')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
 django.setup()
 
@@ -15,6 +15,7 @@ from core.models import Filial
 
 # Асинхронное получение списка филиалов
 async def get_branches():
+    from core.models import Filial
     @sync_to_async
     def get_branches_sync():
         return list(Filial.objects.all().order_by('name'))

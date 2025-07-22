@@ -40,6 +40,7 @@ class ChatConsumer(WebsocketConsumer):
          #      name=message,
          #      employee_id=employee.id
          #)
+         print("это сотрудник")
          async_to_sync(self.channel_layer.group_send)(
                   self.room_group_name,
                   {

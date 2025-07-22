@@ -1,4 +1,6 @@
 import asyncio
+import websockets
+import json
 from create_bot import bot
 from aiogram.filters import Command
 from aiogram import Router, F
@@ -9,9 +11,6 @@ from aiogram.filters.state import State, StatesGroup
 import os
 import django
 import sys
-import websockets
-import json
-
 from asgiref.sync import sync_to_async
 
 sys.path.append('C:/chat-bot/chatbot')
@@ -23,10 +22,9 @@ class Form_question(StatesGroup):
     question = State()
 
 question_router = Router()
-
 short_delay = 1
 
-
+# WebSocket URL (замените на ваш реальный адрес)
 WEBSOCKET_URL = "ws://localhost:8000/ws/chat/"
 
 async def send_via_websocket(employee_id, message_text, sender_id):
@@ -41,39 +39,48 @@ async def send_via_websocket(employee_id, message_text, sender_id):
     except Exception as e:
         print(f"Ошибка WebSocket: {e}")
 
-@question_router.message(Command('хочузадатьвопрос')) # обработка команды /хочузадатьвопрос
+@question_router.message(Command('хочузадатьвопрос'))
 @question_router.message(F.text == "Хочу задать вопрос")
 async def capture_question(message: Message, state: FSMContext):
-    async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
+    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await asyncio.sleep(short_delay)
-        await message.answer("Приветствую тебя, молодой специалист!\n\n"
-                             "Возникли вопросы? Оставь их ниже и ожидай ответа.", reply_markup = ReplyKeyboardRemove())
+        await message.answer(
+            "Приветствую тебя, молодой специалист!\n\n"
+            "Возникли вопросы? Оставь их ниже и ожидай ответа.",
+            reply_markup=ReplyKeyboardRemove()
+        )
     await state.set_state(Form_question.question)
 
 @question_router.message(F.text, Form_question.question)
-async def capture_name(message: Message, state: FSMContext):
+async def process_question(message: Message, state: FSMContext):
     question = message.text
-    telegram_id = message.from_user.id 
+    telegram_id = message.from_user.id
+    
     try:
-        employee = await sync_to_async(Employee.objects.get)(telegram_id = telegram_id)
+        # Получаем данные сотрудника
+        employee = await sync_to_async(Employee.objects.get)(telegram_id=telegram_id)
+        
+        # Сохраняем вопрос в базу
         special_question = Special_Question(
-            name = question,
-            employee_id = employee.id 
+            name=question,
+            employee_id=employee.id
         )
         await sync_to_async(special_question.save)()
-
-        # # Отправляем через WebSocket
-        # await send_via_websocket(
-        #     message_text=question,
-        #     sender_id=f"{employee.login}"
-        # )
-
+        
+        # Отправляем через WebSocket
+        await send_via_websocket(
+            employee_id=employee.id,
+            message_text=question,
+            sender_id=employee.login
+        )
+        
         await asyncio.sleep(short_delay)
-        await message.answer("Ваш вопрос сохранен! Ожидайте ответа.")
+        await message.answer("Ваш вопрос сохранен и отправлен куратору! Ожидайте ответа.")
+        
+    except Employee.DoesNotExist:
+        await message.answer("Ошибка: ваш профиль сотрудника не найден.")
     except Exception as e:
-        print(f"Ошибка при сохранении данных: {e}")
-        await asyncio.sleep(short_delay)
-        await message.answer('Произошла ошибка при сохранении ваших данных. Пожалуйста, попробуйте позже.')
+        print(f"Ошибка при обработке вопроса: {e}")
+        await message.answer('Произошла ошибка. Пожалуйста, попробуйте позже.')
+    
     await state.clear()
-    
-    

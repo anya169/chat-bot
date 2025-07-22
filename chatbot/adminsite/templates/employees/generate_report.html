@@ -1,0 +1,27 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Формирование отчета</title>
+</head>
+<body>
+   <h1>Формирование отчета</h1>
+   
+   <h3>Сотрудники</h3>
+   <ul>
+      {% for employee in employees %}
+      <li>
+         <span class="employee__name">{{ employee.name }}</span>
+         <div class="employee__filial">Филиал: {{ employee.filial.name }}</div>
+         <div class="employee__struct">Подразделение: {{ employee.struct.name }}</div>
+         <div class="employee__numtab">Табельный номер: {{ employee.num_tab }}</div>
+         <div class="employee__hiredate">Дата приёма: {{ employee.hire_date|date:"d.m.Y" }}</div>
+      </li>
+      {% empty %}
+      <li>Нет сотрудников для отображения</li>
+      {% endfor %}
+   </ul>
+   <button class="send-button" type="submit" id="send-button">Сформировать отчет</button>
+</body>
+</html>
