@@ -29,43 +29,6 @@ async def branches_kb() -> InlineKeyboardMarkup:
         for branch in branches
     ]
     return InlineKeyboardMarkup(inline_keyboard=[[button] for button in buttons])
-# def branches_kb() -> InlineKeyboardMarkup:
-#     # список с филиалами
-#     branches = [
-#         "Администрация",
-#         "Алданское ЛПУМГ",
-#         "Александровское ЛПУМГ",
-#         "Алтайское ЛПУМГ",
-#         "Амурское ЛПУМГ",
-#         "Барабинское ЛПУМГ",
-#         "Инженерно-технический центр",
-#         "Иркутское ЛПУМГ",
-#         "Камчатское ЛПУМГ",
-#         "Кемеровское ЛПУМГ",
-#         "Корпоративный институт",
-#         "Ленское ЛПУМГ",
-#         "Магистральное ЛПУМГ",
-#         "Нерюнгринское ЛПУМГ",
-#         "Новокузнецкое ЛПУМГ",
-#         "Новосибирское ЛПУМГ",
-#         "Омское ЛПУМГ",
-#         "Приморское ЛПУМГ",
-#         "Сахалинское ЛПУМГ",
-#         "Свободненское ЛПУМГ",
-#         "Сковородинское ЛПУМГ",
-#         "Томское ЛПУМГ",
-#         "Управление АВР",
-#         "Управление АВР №2",
-#         "Управление МТСиК",
-#         "Управление ТТиСТ",
-#         "Юргинское ЛПУМГ",
-#         "Хабаровское ЛПУМГ"
-#     ]
-#     buttons = [
-#         InlineKeyboardButton(text = branch, callback_data = f"branch_{branch}") 
-#         for branch in branches
-#     ]
-#     return InlineKeyboardMarkup(inline_keyboard = [[button] for button in buttons])
 
 # клавиатура с кнопкой "Рассказать о себе"
 def tell_about_myself_kb(user_telegram_id: int):

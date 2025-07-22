@@ -160,14 +160,20 @@ async def capture_curator_information(message: Message, state: FSMContext):
     await state.update_data(hire_date = message.text)
     data = await state.get_data()
     try:
-        filial, _ = await sync_to_async(Filial.objects.get_or_create)(name=data.get('branch'))
+        # Получаем ID филиала из данных состояния
+        branch_id = data.get('branch')
+        
+        # Получаем филиал по ID
+        filial = await sync_to_async(Filial.objects.get)(id=branch_id)
+        
+        # Создаем сотрудника
         employee = Employee(
-            num_tab = data.get('service_number', 'Не указан'),
-            name = f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
+            num_tab=data.get('service_number', 'Не указан'),
+            name=f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
             filial=filial,
-            hire_date = hire_date,
-            telegram_id = message.from_user.id,
-            telegram_registration_date = datetime.now().date()
+            hire_date=hire_date,
+            telegram_id=message.from_user.id,
+            telegram_registration_date=datetime.now().date()
         )
         await sync_to_async(employee.save)()
         await asyncio.sleep(short_delay)
@@ -175,6 +181,23 @@ async def capture_curator_information(message: Message, state: FSMContext):
         print(f"Ошибка при сохранении данных: {e}")
         await asyncio.sleep(short_delay)
         await message.answer('Произошла ошибка при сохранении ваших данных. Пожалуйста, попробуйте позже.')
+    
+    # try:
+    #     filial, _ = await sync_to_async(Filial.objects.get_or_create)(name=data.get('branch'))
+    #     employee = Employee(
+    #         num_tab = data.get('service_number', 'Не указан'),
+    #         name = f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
+    #         filial=filial,
+    #         hire_date = hire_date,
+    #         telegram_id = message.from_user.id,
+    #         telegram_registration_date = datetime.now().date()
+    #     )
+    #     await sync_to_async(employee.save)()
+    #     await asyncio.sleep(short_delay)
+    # except Exception as e:
+    #     print(f"Ошибка при сохранении данных: {e}")
+    #     await asyncio.sleep(short_delay)
+    #     await message.answer('Произошла ошибка при сохранении ваших данных. Пожалуйста, попробуйте позже.')
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer('Спасибо за ответы!')
