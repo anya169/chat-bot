@@ -103,8 +103,15 @@ def chat_with_employee(request, employee_id):
   
 #страница для формирования отчета  
 def report_page(request):
-   employees = Employee.objects.filter(curator_login=request.user.username)
-   return render(request, 'employees/generate_report.html', {'employees': employees})
+   #передаем всех сотрудников
+   employees = Employee.objects.filter(is_curator = False)
+   filials = Filial.objects.all()
+   structs = Struct.objects.all()
+   return render(request, 'employees/generate_report.html', 
+                 {'employees': employees, 
+                  'filials': filials, 
+                  'structs': structs, 
+                  'current_user': request.user.username})
 
 #генерация и скачивание отчета
 @require_http_methods(["GET", "POST"])
@@ -128,3 +135,12 @@ def download_report(request):
       
    except Exception as e:
       return HttpResponse(f"Ошибка: {str(e)}", status=500)
+   
+   
+#статистика
+def statistic(request):
+   employee = Employee.objects.all()
+ 
+   return render(request, 'statistic/statistic.html', {
+      'employee': employee
+   })

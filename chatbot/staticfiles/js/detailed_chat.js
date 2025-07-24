@@ -1,4 +1,6 @@
 //создаем вебсокет
+const employeeId = document.getElementById('employee-data').dataset.employeeId;
+const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${employeeId}/`);
 //при получении нового сообщения от сервера вызываем функцию
 chatSocket.onmessage = function(e) {
    //преобразовываем объект json в строку

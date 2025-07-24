@@ -7,34 +7,49 @@
    <title>Чат с сотрудником</title>
    <link rel="stylesheet" href="{% static 'css/common.css' %}">
 </head>
-<body>
-   <div class="chat__container">
-      <div class="chat__header">
-         <h2>Чат с {{ employee.name }}</h2>
-         <p>Должность: {{ employee.post }}</p>
-      </div>
-      
-      <div class="chat__messages" id="chat-messages">
-         {% for question_answer in questions_answers %}
-            <div class="message received">
-                  <p><strong>{{ employee.name }}:</strong> {{ question_answer.name }}</p>
-                  <small>{{ question_answer.creation_question|date:"d.m.Y H:i" }}</small>
-            </div>
-            {% if question_answer.answer %}
-                  <div class="message sent">
-                     <p><strong>Вы:</strong> {{ question_answer.answer }}</p>
-                     <small>{{ question_answer.creation_answer|date:"d.m.Y H:i" }}</small>
+<body class='layout'>
+   <div class="sidebar">
+      <a href="{% url 'curator_account' %}">
+         <img src="{% static 'images/logo.svg' %}" class="logo-svg" alt="Логотип">
+      </a>
+      <ul>
+         <div class="sidebar__item">ПРОФИЛЬ</div>
+         <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
+         <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
+         <div class="sidebar__item">СОТРУДНИКИ</div>
+         <div class="sidebar__subitem"><a href="/young_employees">Список сотрудников</a></div>
+         <div class="sidebar__subitem"><a href="/report">Сформировать отчет</a></div>
+         <div class="sidebar__item">СТАТИСТИКА</div>
+         <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
+      </ul>
+   </div>
+   <main class="content">
+      <h3>Чат с {{ employee.name }}</h3>
+      <div class="employees-panel">  
+         <div class="chat-container">          
+            <div class="chat__messages" id="chat-messages">
+               {% for question_answer in questions_answers %}
+                  <div class="message received">
+                        <p><strong>{{ employee.name }}:</strong> {{ question_answer.name }}</p>
+                        <small>{{ question_answer.creation_question|date:"d.m.Y H:i" }}</small>
                   </div>
-            {% endif %} 
-         {% endfor %}       
-      </div>
-      
-      <div class="chat__input">
-         <form id="message-form">
-            <input class="input" type="text" id="message-input" placeholder="Введите сообщение..." required>
-            <button class="send-button" type="submit">Отправить</button>
-         </form>
-      </div>
+                  {% if question_answer.answer %}
+                        <div class="message sent">
+                           <p><strong>Вы:</strong> {{ question_answer.answer }}</p>
+                           <small>{{ question_answer.creation_answer|date:"d.m.Y H:i" }}</small>
+                        </div>
+                  {% endif %} 
+               {% endfor %}       
+            </div>
+            
+            <div class="chat__input">
+               <form id="message-form">
+                  <input class="input" type="text" id="message-input" placeholder="Введите сообщение..." required>
+                  <button class="send-button button" type="submit">Отправить</button>
+               </form>
+            </div>
+         </div>
+   </main>
 </body>
 <script>
    //создаем вебсокет

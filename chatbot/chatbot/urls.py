@@ -8,13 +8,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login_page, name='login_page'),
     path('login_user/', login_user, name='login_user'), 
-    path('admin_account', admin_account, name='admin_account'),
-    path('curator_account', curator_account, name='curator_account'),
+    path('admin_account/', admin_account, name='admin_account'),
+    path('curator_account/', curator_account, name='curator_account'),
     re_path('young_employees/', young_employee_list, name='young_employee_list'),
     path('chats/', chats, name='chats'),
     path('chat/<int:employee_id>/', chat_with_employee, name='chat_with_employee'),
     path('report/', report_page, name='report_page'),
     path('download/', download_report, name='download_report'),
+    path('statistic/', statistic, name='statistic'),
 ] 
 
 if settings.DEBUG:

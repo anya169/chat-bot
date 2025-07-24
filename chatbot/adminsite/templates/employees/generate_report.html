@@ -4,27 +4,192 @@
 <html>
 <head>
    <title>Формирование отчета</title>
+   <link rel="stylesheet" href="{% static '/css/common.css' %}">
 </head>
-<body>
-   <h1>Формирование отчета</h1>
-   
-   <h3>Сотрудники</h3>
-   <ul>
-      {% for employee in employees %}
-      <li>
-         <span class="employee__name">{{ employee.name }}</span>
-         <div class="employee__filial">Филиал: {{ employee.filial.name }}</div>
-         <div class="employee__struct">Подразделение: {{ employee.struct.name }}</div>
-         <div class="employee__numtab">Табельный номер: {{ employee.num_tab }}</div>
-         <div class="employee__hiredate">Дата приёма: {{ employee.hire_date|date:"d.m.Y" }}</div>
-      </li>
-      {% empty %}
-      <li>Нет сотрудников для отображения</li>
-      {% endfor %}
-   </ul>
-   <form action="{% url 'download_report' %}" method="post">
-         {% csrf_token %}
-         <button type="submit">Сформировать отчёт</button>
-   </form>
+<body class='layout'>
+   <div class="sidebar">
+      <a href="{% url 'curator_account' %}">
+         <img src="{% static 'images/logo.svg' %}" class="logo-svg" alt="Логотип">
+      </a>
+      <ul>
+         <div class="sidebar__item">ПРОФИЛЬ</div>
+         <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
+         <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
+         <div class="sidebar__item">СОТРУДНИКИ</div>
+         <div class="sidebar__subitem"><a href="/young_employees">Список сотрудников</a></div>
+         <div class="sidebar__subitem"><a href="/report">Сформировать отчет</a></div>
+         <div class="sidebar__item">СТАТИСТИКА</div>
+         <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
+      </ul>
+   </div>
+   <main class="content">
+      <h3>Молодые сотрудники</h3>
+      <div class="employees-panel">
+         <form method="post" action="/your-filter-url/">
+            {% csrf_token %}
+            <table class="employee-table">
+            <thead>
+               <tr>
+                  <th></th>
+                  <th>ФИО</th>
+                  <th>Филиал</th>
+                  <th>Подразделение</th>
+                  <th>Табельный номер</th>
+                  <th>Дата приёма</th>
+               </tr>
+            </thead>
+            <tbody>
+               {% for employee in employees %}
+               <tr data-curator="{{ employee.curator_login }}">
+                  <td>
+                     <input type="checkbox" 
+                              id="employee_{{ employee.id }}" 
+                              name="selected_employees" 
+                              value="{{ employee.id }}"
+                              class="employee-checkbox">
+                     <label for="employee_{{ employee.id }}"></label>
+                  </td>
+                  <td>{{ employee.name }}</td>
+                  <td>{{ employee.filial.name|default:"-" }}</td>
+                  <td>{{ employee.struct.name|default:"-" }}</td>
+                  <td>{{ employee.num_tab|default:"-" }}</td>
+                  <td>{{ employee.hire_date|date:"d.m.Y"|default:"-" }}</td>
+               </tr>
+               {% empty %}
+               <tr>
+                  <td colspan="6">Нет сотрудников для отображения</td>
+               </tr>
+               {% endfor %}
+            </tbody>
+            </table>
+         </form> 
+         </div> 
+         <h3>Фильтрация</h3>
+            <div class="employees-panel">
+            <div class="employee-controls">
+               <label class="filter-checkbox">
+                  <input type="checkbox" id="filter_own_employees"> 
+                  Только свои сотрудники
+               </label>
+            </div>
+            <div class="employee-controls">
+               <label class="filter-checkbox">
+                  <input type="checkbox" id="select_all"> 
+                  Выбрать всех
+               </label>
+            </div>
+            <div class="dropdown">
+               <button class="dropdown-toggle button-inverse" type="button" id="filialDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Выберите филиалы
+                  <span class="dropdown-arrow">▼</span>
+               </button>
+               <div class="dropdown-menu" aria-labelledby="filialDropdown">
+                  {% for filial in filials %}
+                  <div class="dropdown-item">
+                     <label class="checkbox-container">
+                     <input type="checkbox" name="filial_filter" value="{{ filial.id }}">
+                     <span class="checkmark"></span>
+                     {{ filial.name }}
+                     </label>
+                  </div>
+                  {% endfor %}
+               </div>
+            </div>
+            <div class="dropdown">
+               <button class="dropdown-toggle button-inverse" type="button" id="filialDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Выберите подразделения
+                  <span class="dropdown-arrow">▼</span>
+               </button>
+               <div class="dropdown-menu" aria-labelledby="filialDropdown">
+                  {% for struct in structs %}
+                  <div class="dropdown-item">
+                     <label class="checkbox-container">
+                     <input type="checkbox" name="filter" value="{{ struct.id }}">
+                     <span class="checkmark"></span>
+                     {{ struct.name }}
+                     </label>
+                  </div>
+                  {% endfor %}
+               </div>
+            </div>
+            <form action="{% url 'download_report' %}" method="post">
+                  {% csrf_token %}
+                  <button type="submit" class="report-button button">Сформировать отчёт</button>
+            </form>
+      </div>
+   </main>
 </body>
 </html>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+      const currentUser = '{{ request.user.username }}';
+      const filterCheckbox = document.getElementById('filter_own_employees');
+      const selectAllCheckbox = document.getElementById('select_all');
+      //получаем все строчки из таблицы
+      const allRows = document.querySelectorAll('.employee-table tbody tr');
+      //обработчик изменения состояния чекбокса
+      filterCheckbox.addEventListener('change', filterRows);
+      //галочка "только свои сотрудники"
+      function filterRows() {
+         //если была поставлена метка "только свои сотрудники"
+         const showOnlyOwn = filterCheckbox.checked;
+         allRows.forEach(row => {
+            //если сотрудник в строке принадлежит куратору ставим true
+            const isOwn = row.dataset.curator === currentUser;
+            //если была поставлена метка и сотрудник не принадлежит куратору,
+            // ставим display: none, если нет - ничего не меняем
+            if (showOnlyOwn && !isOwn) {
+               row.style.display = 'none';
+               row.querySelector('.employee-checkbox').checked = false; //снимаем выделение
+            } else {
+               row.style.display = '';
+            }
+            if (showOnlyOwn && isOwn){
+               row.querySelector('.employee-checkbox').checked = true; //выделяем 
+            }
+            if (!showOnlyOwn){
+               row.querySelector('.employee-checkbox').checked = false; //снимаем выделение
+            }
+         });
+         //отжимаем галочку 
+         if (selectAllCheckbox.checked == true){
+            selectAllCheckbox.checked = false;
+            selectAll();
+         }
+         
+      }
+      selectAllCheckbox.addEventListener('change', selectAll);
+      //галочка "выбрать все"
+      function selectAll() {
+         //если была поставлена метка "выбрать все"
+         const showAll = selectAllCheckbox.checked;
+         allRows.forEach(row => {
+            //если была поставлена метка, выделяем все
+            if (showAll) {
+               row.querySelector('.employee-checkbox').checked = true; //выделяем 
+            } else {
+              row.querySelector('.employee-checkbox').checked = false; //иначе снимаем выделение везде   
+            }
+         });
+         //отжимаем галочку 
+         if (filterCheckbox.checked == true){
+            filterCheckbox.checked = false;
+            filterRows();
+         }
+         
+      }
+      });
+   document.addEventListener('DOMContentLoaded', function() {
+      //открытие/закрытие выпадающего списка при нажатии 
+      document.querySelector('.dropdown-toggle').addEventListener('click', function() {
+         document.querySelector('.dropdown-menu').classList.toggle('show');
+      });
+
+      //обработка выбора чекбоксов
+      document.querySelectorAll('input[name="filter"]').forEach(function(checkbox) {
+         checkbox.addEventListener('change', function() {
+         });
+      });
+   });
+  
+</script>
