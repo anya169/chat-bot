@@ -19,6 +19,8 @@ def generate_report(cur_curator_login):
 
       #получаем всех сотрудников куратора
       curators_employees = Employee.objects.filter(curator_login = cur_curator_login)
+      #получаем все существующие опросы
+      polls = Poll.objects.all()
 
       #заполняем шапку
       ws["A1"] = ws["A1"].value.replace("{{ date }}", current_datetime)
@@ -28,43 +30,51 @@ def generate_report(cur_curator_login):
       #начинаем выводить информацию с 5 строки
       current_row = 5
       
-      for employee in curators_employees:
-         #заголовок таблицы сотрудника
-         ws.cell(row=current_row, column=1, value=f"Сотрудник: {employee.name}").font = Font(bold=True)
-         ws.cell(row=current_row, column=2, value=f"Филиал: {employee.filial}")
+      for poll in polls:
+         #сотрудники, прошедшие этот опрос
+         employees = Employee.objects.filter(
+            answer__question__poll=poll
+         ).distinct()
+         current_employees = curators_employees.filter(
+            id__in=employees.values('id')
+         ).distinct()
+         #если нет сотрудников, прошедших этот опрос, пропускаем его
+         if not current_employees:
+            continue
+         #шапка таблицы 
+         ws.cell(row=current_row, column=1, value=f"Опрос: {poll.name}").font = Font(bold=True)
          current_row += 1
-         
-         #получаем все пройденные опросы сотрудника
-         employees_polls = Poll.objects.filter(question__answer__login = employee.id).distinct()
-         for employee_poll in employees_polls:
-            #шапка таблицы 
-            ws.cell(row=current_row, column=1, value=f"Опрос: {employee_poll.name}").font = Font(bold=True)
-            current_row += 1
-            
-            #получаем все вопросы из опроса
-            employees_questions = Question.objects.filter(poll_id = employee_poll.id)
-            
-            #заголовки таблицы
-            ws.cell(row=current_row, column=2, value="Вопрос")
-            ws.cell(row=current_row, column=3, value="Ответ")
-            current_row += 1
-            for employees_question in employees_questions:
+         #получаем все вопросы из опроса
+         questions = Question.objects.filter(poll_id = poll.id)
+         ws.cell(row=current_row, column=1, value="ФИО")
+         ws.cell(row=current_row, column=2, value="Филиал")
+         cur_column = 3
+         for question in questions:
+            #заголовки таблицы c названиями вопросов
+            ws.cell(row=current_row, column=cur_column, value=question.name)
+            cur_column += 1
+         current_row += 1
+         for current_employee in current_employees:
+            #заполняем фио и филиал
+            ws.cell(row=current_row, column=1, value=current_employee.name)
+            ws.cell(row=current_row, column=2, value=current_employee.filial.name)
+            cur_column = 3
+            for question in questions:
                #находим ответ на вопрос
-               question_answer = Answer.objects.filter(question_id = employees_question.id, login_id = employee.id).first()   
-               #заполняем строку       
-               ws.cell(row=current_row, column=1, value=current_row)
-               ws.cell(row=current_row, column=2, value=employees_question.name)
-               ws.cell(row=current_row, column=3, value=question_answer)
-               current_row += 1
-            
-         current_row += 2  
-         
-      #сохранение отчета
+               answer = Answer.objects.filter(question_id = question.id, login_id = current_employee.id).first()   
+               ws.cell(row=current_row, column=cur_column, value=answer.name)
+               cur_column += 1
+            current_row += 1 
+         current_row += 2 
+               
+   #сохранение отчета
       report_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
       wb.save(report_filename)
       return report_filename
    
    except Exception as e:
       print(f"Ошибка при формировании отчета: {str(e)}")
-      return None
-   
+      return None      
+            
+            
+            
