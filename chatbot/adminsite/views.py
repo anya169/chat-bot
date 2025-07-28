@@ -107,10 +107,12 @@ def report_page(request):
    employees = Employee.objects.filter(is_curator = False)
    filials = Filial.objects.all()
    structs = Struct.objects.all()
+   numtabs = employees.values_list('num_tab', flat=True)
    return render(request, 'employees/generate_report.html', 
                  {'employees': employees, 
                   'filials': filials, 
                   'structs': structs, 
+                  'numtabs': numtabs, 
                   'current_user': request.user.username})
 
 #генерация и скачивание отчета
@@ -135,7 +137,26 @@ def download_report(request):
       
    except Exception as e:
       return HttpResponse(f"Ошибка: {str(e)}", status=500)
-   
+  
+#информация о сотруднике
+def employee(request, employee_id):
+   employee = Employee.objects.filter(id=employee_id).first()
+   #все его пройденные опросы
+   polls = Poll.objects.filter(question__answer__login = employee.id).distinct()
+   questions_answers = []
+   for poll in polls:
+      poll_questions = Question.objects.filter(poll_id=poll.id)
+      for poll_question in poll_questions:
+         poll_answer = Answer.objects.filter(question_id=poll_question.id, login=employee).first()
+         #cохраняем пару (вопрос, ответ)
+         questions_answers.append((poll_question, poll_answer))
+   count = polls.count()
+   return render(request, 'personal_account/employee.html', {
+      'employee': employee,
+      'polls': polls,
+      'questions_answers': questions_answers,
+      'count': count
+   })   
    
 #статистика
 def statistic(request):

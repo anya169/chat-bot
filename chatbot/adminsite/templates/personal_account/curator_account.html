@@ -25,10 +25,10 @@
       <div class="employees-panel">
          <div class="account">
             <span class="employee__info">{{ employee.name }}</span>
-            <div class="employee__info">Филиал: {{ employee.filial.name }}</div>
-            <div class="employee__info">Подразделение: {{ employee.struct.name }}</div>
-            <div class="employee__info">Табельный номер: {{ employee.num_tab }}</div>
-            <div class="employee__info">Email: {{ employee.email }}</div>
+            <div class="employee__info">Филиал: {{ employee.filial.name|default:"-" }}</div>
+            <div class="employee__info">Подразделение: {{ employee.struct.name|default:"-" }}</div>
+            <div class="employee__info">Табельный номер: {{ employee.num_tab|default:"-" }}</div>
+            <div class="employee__info">Email: {{ employee.email|default:"-" }}</div>
             <div class="employee__info">Количество подопечных сотрудников: {{ count }}</div>     
          </div>
       </div>   

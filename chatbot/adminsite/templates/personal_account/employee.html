@@ -1,0 +1,66 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Информация о сотруднике</title>
+   <link rel="stylesheet" href="{% static '/css/common.css' %}">
+</head>
+<body class='layout'>
+   <div class="sidebar">
+      <a href="{% url 'curator_account' %}">
+         <img src="{% static 'images/logo.svg' %}" class="logo-svg" alt="Логотип">
+      </a>
+      <ul>
+         <div class="sidebar__item">ПРОФИЛЬ</div>
+         <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
+         <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
+         <div class="sidebar__item">СОТРУДНИКИ</div>
+         <div class="sidebar__subitem"><a href="/report">Список сотрудников</a></div>
+         <div class="sidebar__item">СТАТИСТИКА</div>
+         <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
+      </ul>
+   </div>
+   <main class="content">
+      <h3>Информация о сотруднике</h3>
+      <div class="employees-panel">
+         <div class="account">
+            <span class="employee__info">{{ employee.name }}</span>
+            <div class="employee__info">Филиал: {{ employee.filial.name|default:"-" }}</div>
+            <div class="employee__info">Подразделение: {{ employee.struct.name|default:"-" }}</div>
+            <div class="employee__info">Табельный номер: {{ employee.num_tab|default:"-" }}</div>
+            <div class="employee__info">Email: {{ employee.email|default:"-" }}</div>
+            <div class="employee__info">Дата приема на работу: {{ employee.hire_date|date:"d.m.Y"|default:"-" }}</div>     
+            <div class="employee__info">Дата первого обращения к боту: {{ employee.telegram_registration_date|date:"d.m.Y"|default:"-" }}</div> 
+            <div class="employee__info">Количество пройденных опросов: {{ count|default:"-" }}</div> 
+         </div>
+      </div>
+      <h3>Пройденные опросы</h3>
+      <div class="employees-panel">
+         <div class="polls-tables">
+            {% for poll in polls %}
+               <h4>{{ poll.name }}</h4>
+               <table class="employee-table">
+                  <thead>
+                     <tr>
+                        <th>Вопрос</th>
+                        <th>Ответ</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {% for question, answer in questions_answers %}
+                        <tr>
+                           <td>{{ question.name }}</td>
+                           <td>{{ answer.name }}</td> 
+                        </tr> 
+                     {% endfor %}
+                  </tbody>
+               </table>
+            {% empty %}
+               <div>Не пройдено ни одного опроса</div>
+            {% endfor %}
+            </div>
+      </div>   
+   </main>
+</body>
+</html>

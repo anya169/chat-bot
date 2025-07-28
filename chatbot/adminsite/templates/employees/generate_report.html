@@ -4,7 +4,8 @@
 <html>
 <head>
    <title>Формирование отчета</title>
-   <link rel="stylesheet" href="{% static '/css/common.css' %}">
+   <link rel="stylesheet" href="{% static '/css/common.css' %}?v={% now 'U' %}">
+   <link rel="stylesheet" href="{% static '/css/air-datepicker.css' %}?v={% now 'U' %}">
 </head>
 <body class='layout'>
    <div class="sidebar">
@@ -16,8 +17,7 @@
          <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
          <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
          <div class="sidebar__item">СОТРУДНИКИ</div>
-         <div class="sidebar__subitem"><a href="/young_employees">Список сотрудников</a></div>
-         <div class="sidebar__subitem"><a href="/report">Сформировать отчет</a></div>
+         <div class="sidebar__subitem"><a href="/report">Список сотрудников</a></div>
          <div class="sidebar__item">СТАТИСТИКА</div>
          <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
       </ul>
@@ -25,17 +25,199 @@
    <main class="content">
       <h3>Молодые сотрудники</h3>
       <div class="employees-panel">
+         <div class="filter-panel">
+            <div class="employee-controls">
+               <label class="filter-checkbox">
+                  <input type="checkbox" id="filter_own_employees"> 
+                  Только свои сотрудники
+               </label>
+               <label class="filter-checkbox">
+                  <input type="checkbox" id="select_all"> 
+                     Выбрать всех
+               </label>
+            </div>
+            <form action="{% url 'download_report' %}" method="post">
+                     {% csrf_token %}
+                     <button type="submit" class="report-button button">Сформировать отчёт</button>
+            </form>
+         </div>
+         
          <form method="post" action="/your-filter-url/">
             {% csrf_token %}
             <table class="employee-table">
             <thead>
                <tr>
                   <th></th>
-                  <th>ФИО</th>
-                  <th>Филиал</th>
-                  <th>Подразделение</th>
-                  <th>Табельный номер</th>
-                  <th>Дата приёма</th>
+                  <th>
+                     <div class="dropdown">
+                        <button class="dropdown-toggle" type="button" id="nameDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           ФИО
+                           <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="nameDropdown">
+                           <input class="search" type="text" placeholder="Поиск..." id="name-search" 
+                              style="background-image: url('{% static 'images/search.svg' %}')">
+                           <button class="reset-button">Сбросить все</button>
+                           {% for employee in employees %}
+                           <div class="dropdown-item">
+                              <label class="checkbox-container">
+                                 <input type="checkbox" name="filial_filter" value="{{ employee.id }}">
+                                 <span class="checkmark"></span>
+                                 <span>{{ employee.name }}</span> 
+                              </label>
+                           </div>
+                           {% endfor %}
+                        </div>
+                     </div>   
+                  </th>
+                  <th>
+                     <div class="dropdown">
+                        <button class="dropdown-toggle" type="button" id="filialDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           Филиалы
+                           <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="filialDropdown">
+                           <input class="search" type="text" placeholder="Поиск..." id="filial-search" 
+                              style="background-image: url('{% static 'images/search.svg' %}')">
+                           <button class="reset-button">Сбросить все</button>
+                           {% for filial in filials %}
+                           <div class="dropdown-item" id="dropdown-item">
+                              <label class="checkbox-container">
+                                 <input type="checkbox" name="filial_filter" value="{{ filial.id }}">
+                                 <span class="checkmark"></span>
+                                 <span>{{ filial.name }}</span> 
+                              </label>
+                           </div>
+                           {% endfor %}
+                        </div>
+                     </div>   
+                  </th>
+                  <th>
+                     <div class="dropdown">
+                        <button class="dropdown-toggle" type="button" id="structDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           Подразделения
+                           <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="structDropdown">
+                           <input class="search" type="text" placeholder="Поиск..." id="struct-search" 
+                              style="background-image: url('{% static 'images/search.svg' %}')">
+                           <button class="reset-button">Сбросить все</button>
+                           {% for struct in structs %}
+                           <div class="dropdown-item">
+                              <label class="checkbox-container">
+                              <input type="checkbox" name="filter" value="{{ struct.id }}">
+                              <span class="checkmark"></span>
+                              {{ struct.name }}
+                              </label>
+                           </div>
+                           {% endfor %}
+                        </div>
+                     </div>
+                  </th>
+                  <th>
+                     <div class="dropdown">
+                        <button class="dropdown-toggle" type="button" id="numtabDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           Табельный номер
+                           <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="numtabDropdown">
+                           <input class="search" type="text" placeholder="Поиск..." id="numtab-search" 
+                              style="background-image: url('{% static 'images/search.svg' %}')">
+                           <button class="reset-button">Сбросить все</button> 
+                           {% for numtab in numtabs %}
+                           <div class="dropdown-item">
+                              <label class="checkbox-container">
+                              <input type="checkbox" name="numtab_filter" value="{{ numtab }}">
+                              <span class="checkmark"></span>
+                              {{ numtab }}
+                              </label>
+                           </div>
+                           {% endfor %}
+                        </div>
+                     </div>   
+                  </th>
+                  <th>
+                     <button class="dropdown-toggle" type="button" id="hireDateDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           Дата приема
+                           <span class="dropdown-arrow">▼</span>
+                        </button>
+                     <div class="dropdown-menu datemenu" id="dateDropdown">
+                        <div>c </div>
+                        <div class="field__date">
+                           <div class="field__date-inputs">
+                              <input
+                              class="hireDateFrom date"
+                              type="text"
+                              placeholder="__.__.____"
+                              readonly
+                           />
+                        </div>
+                        <input
+                           class="dateInput"
+                           type="text"
+                           name="date"
+                           readonly
+                           required
+                        />    
+                        <div>по </div>
+                        <div class="field__date">
+                           <div class="field__date-inputs">
+                              <input
+                              class="hireDateTo date"
+                              type="text"
+                              placeholder="__.__.____"
+                              readonly
+                           />
+                        </div>
+                        <input
+                           class="dateInput"
+                           type="text"
+                           name="date"
+                           readonly
+                           required
+                        />    
+                  </th>
+                  <th>
+                     <button class="dropdown-toggle" type="button" id="hireDateDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           Дата первого обращения к боту
+                           <span class="dropdown-arrow">▼</span>
+                        </button>
+                     <div class="dropdown-menu datemenu" id="dateDropdown">
+                        <div>c </div>
+                        <div class="field__date">
+                           <div class="field__date-inputs">
+                              <input
+                              class="tgDateFrom date"
+                              type="text"
+                              placeholder="__.__.____"
+                              readonly
+                           />
+                        </div>
+                        <input
+                           class="dateInput"
+                           type="text"
+                           name="date"
+                           readonly
+                           required
+                        />    
+                        <div>по </div>
+                        <div class="field__date">
+                           <div class="field__date-inputs">
+                              <input
+                              class="tgDateTo date"
+                              type="text"
+                              placeholder="__.__.____"
+                              readonly
+                           />
+                        </div>
+                        <input
+                           class="dateInput"
+                           type="text"
+                           name="date"
+                           readonly
+                           required
+                        />    
+                  </th>
                </tr>
             </thead>
             <tbody>
@@ -49,11 +231,16 @@
                               class="employee-checkbox">
                      <label for="employee_{{ employee.id }}"></label>
                   </td>
-                  <td>{{ employee.name }}</td>
+                  <td>
+                     <a href="{% url 'employee' employee.id %}" class="personal">
+                        {{ employee.name }}
+                     </a>
+                  </td>
                   <td>{{ employee.filial.name|default:"-" }}</td>
                   <td>{{ employee.struct.name|default:"-" }}</td>
                   <td>{{ employee.num_tab|default:"-" }}</td>
                   <td>{{ employee.hire_date|date:"d.m.Y"|default:"-" }}</td>
+                  <td>{{ employee.telegram_registration_date|date:"d.m.Y"|default:"-" }}</td>
                </tr>
                {% empty %}
                <tr>
@@ -63,133 +250,14 @@
             </tbody>
             </table>
          </form> 
-         </div> 
-         <h3>Фильтрация</h3>
-            <div class="employees-panel">
-            <div class="employee-controls">
-               <label class="filter-checkbox">
-                  <input type="checkbox" id="filter_own_employees"> 
-                  Только свои сотрудники
-               </label>
-            </div>
-            <div class="employee-controls">
-               <label class="filter-checkbox">
-                  <input type="checkbox" id="select_all"> 
-                  Выбрать всех
-               </label>
-            </div>
-            <div class="dropdown">
-               <button class="dropdown-toggle button-inverse" type="button" id="filialDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Выберите филиалы
-                  <span class="dropdown-arrow">▼</span>
-               </button>
-               <div class="dropdown-menu" aria-labelledby="filialDropdown">
-                  {% for filial in filials %}
-                  <div class="dropdown-item">
-                     <label class="checkbox-container">
-                     <input type="checkbox" name="filial_filter" value="{{ filial.id }}">
-                     <span class="checkmark"></span>
-                     {{ filial.name }}
-                     </label>
-                  </div>
-                  {% endfor %}
-               </div>
-            </div>
-            <div class="dropdown">
-               <button class="dropdown-toggle button-inverse" type="button" id="filialDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Выберите подразделения
-                  <span class="dropdown-arrow">▼</span>
-               </button>
-               <div class="dropdown-menu" aria-labelledby="filialDropdown">
-                  {% for struct in structs %}
-                  <div class="dropdown-item">
-                     <label class="checkbox-container">
-                     <input type="checkbox" name="filter" value="{{ struct.id }}">
-                     <span class="checkmark"></span>
-                     {{ struct.name }}
-                     </label>
-                  </div>
-                  {% endfor %}
-               </div>
-            </div>
-            <form action="{% url 'download_report' %}" method="post">
-                  {% csrf_token %}
-                  <button type="submit" class="report-button button">Сформировать отчёт</button>
-            </form>
+                 
+         
+           
       </div>
    </main>
+   <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+   <script src="{% static 'js/air-datepicker.js' %}"></script>
+   <script src="{% static 'js/generate-report.js' %}"></script>
+   
 </body>
 </html>
-<script>
-   document.addEventListener('DOMContentLoaded', function() {
-      const currentUser = '{{ request.user.username }}';
-      const filterCheckbox = document.getElementById('filter_own_employees');
-      const selectAllCheckbox = document.getElementById('select_all');
-      //получаем все строчки из таблицы
-      const allRows = document.querySelectorAll('.employee-table tbody tr');
-      //обработчик изменения состояния чекбокса
-      filterCheckbox.addEventListener('change', filterRows);
-      //галочка "только свои сотрудники"
-      function filterRows() {
-         //если была поставлена метка "только свои сотрудники"
-         const showOnlyOwn = filterCheckbox.checked;
-         allRows.forEach(row => {
-            //если сотрудник в строке принадлежит куратору ставим true
-            const isOwn = row.dataset.curator === currentUser;
-            //если была поставлена метка и сотрудник не принадлежит куратору,
-            // ставим display: none, если нет - ничего не меняем
-            if (showOnlyOwn && !isOwn) {
-               row.style.display = 'none';
-               row.querySelector('.employee-checkbox').checked = false; //снимаем выделение
-            } else {
-               row.style.display = '';
-            }
-            if (showOnlyOwn && isOwn){
-               row.querySelector('.employee-checkbox').checked = true; //выделяем 
-            }
-            if (!showOnlyOwn){
-               row.querySelector('.employee-checkbox').checked = false; //снимаем выделение
-            }
-         });
-         //отжимаем галочку 
-         if (selectAllCheckbox.checked == true){
-            selectAllCheckbox.checked = false;
-            selectAll();
-         }
-         
-      }
-      selectAllCheckbox.addEventListener('change', selectAll);
-      //галочка "выбрать все"
-      function selectAll() {
-         //если была поставлена метка "выбрать все"
-         const showAll = selectAllCheckbox.checked;
-         allRows.forEach(row => {
-            //если была поставлена метка, выделяем все
-            if (showAll) {
-               row.querySelector('.employee-checkbox').checked = true; //выделяем 
-            } else {
-              row.querySelector('.employee-checkbox').checked = false; //иначе снимаем выделение везде   
-            }
-         });
-         //отжимаем галочку 
-         if (filterCheckbox.checked == true){
-            filterCheckbox.checked = false;
-            filterRows();
-         }
-         
-      }
-      });
-   document.addEventListener('DOMContentLoaded', function() {
-      //открытие/закрытие выпадающего списка при нажатии 
-      document.querySelector('.dropdown-toggle').addEventListener('click', function() {
-         document.querySelector('.dropdown-menu').classList.toggle('show');
-      });
-
-      //обработка выбора чекбоксов
-      document.querySelectorAll('input[name="filter"]').forEach(function(checkbox) {
-         checkbox.addEventListener('change', function() {
-         });
-      });
-   });
-  
-</script>
