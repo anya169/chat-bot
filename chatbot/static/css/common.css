@@ -127,7 +127,7 @@ a:hover {
    cursor: pointer;
 }
 .employee-table {
-   width: auto;
+   width: 1250px;
    border-collapse: collapse;
    margin: 20px 0;
    border: none;
@@ -154,7 +154,6 @@ a:hover {
 .input[type="checkbox"] {
    width: 18px;
    height: 18px;
-   cursor: pointer;
    background-color: #0078C1;
 }
 
@@ -256,11 +255,11 @@ a:hover {
    display: flex;
 }
 .report-button{
-   margin-left: 770px;
+   margin-left: 600px;
 }
 .employee-controls{
    display: flex;
-   gap: 5px;
+   gap: 15px;
 }
 .dropdown {
    font-family: 'Helios', sans-serif;
@@ -320,15 +319,7 @@ a:hover {
 }
 
 .dateInput{
-   box-sizing: border-box;
-   position: relative;
-   width: 100%;
-   max-width: 250px;
-   height: 55px;
-   border: none;
-   border-radius: 5px;
-   opacity: 0;
-   cursor: pointer; 
+   display: none;
 }
 .air-datepicker {
   z-index: 1000 !important; 

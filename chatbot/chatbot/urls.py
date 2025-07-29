@@ -17,6 +17,7 @@ urlpatterns = [
     path('download/', download_report, name='download_report'),
     path('statistic/', statistic, name='statistic'),
     path('employee/<int:employee_id>/', employee, name='employee'),
+    path('filter_employees/', filter_employees, name='filter_employees'),
 ] 
 
 if settings.DEBUG:

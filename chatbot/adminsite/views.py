@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 import os
 from django.http import FileResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
+import json
+from datetime import datetime
 
 
 #авторизация
@@ -108,12 +110,31 @@ def report_page(request):
    filials = Filial.objects.all()
    structs = Struct.objects.all()
    numtabs = employees.values_list('num_tab', flat=True)
+   curators = Employee.objects.filter(is_curator = True)
+   data = []
+   for emp in employees:
+      if (emp.curator_login):
+         curator = Employee.objects.filter(login=emp.curator_login).first()
+      else:
+         curator = None
+      data.append({
+               'id': emp.id,
+               'name': emp.name,
+               'filial': emp.filial.name if emp.filial else None,
+               'struct': emp.struct.name if emp.struct else None,
+               'num_tab': emp.num_tab,
+               'hire_date': emp.hire_date.strftime('%d.%m.%Y') if emp.hire_date else None,
+               'telegram_registration_date': emp.telegram_registration_date.strftime('%d.%m.%Y') if emp.telegram_registration_date else None,
+               'curator_login': emp.curator_login,
+               'curator': f"{curator.name}" if curator else None
+            })
    return render(request, 'employees/generate_report.html', 
-                 {'employees': employees, 
+                 {'employees': data, 
                   'filials': filials, 
                   'structs': structs, 
-                  'numtabs': numtabs, 
-                  'current_user': request.user.username})
+                  'numtabs': numtabs,
+                  'curators': curators, 
+                  'current_user': request.user.username,})
 
 #генерация и скачивание отчета
 @require_http_methods(["GET", "POST"])
@@ -165,3 +186,86 @@ def statistic(request):
    return render(request, 'statistic/statistic.html', {
       'employee': employee
    })
+
+#фильтрация
+@csrf_exempt   
+def filter_employees(request):
+   cur_login = request.session.get('user_login')
+   if request.method == 'POST':
+      try:
+         filters = json.loads(request.body)
+         is_filter = False
+         employees = Employee.objects.filter(is_curator = False) 
+         
+         if filters.get('all'):
+            is_filter = True   
+         else:
+            if filters.get('name'):
+               employees = employees.filter(name__in=filters['name'])   
+               is_filter = True     
+            if filters.get('filial'):
+               employees = employees.filter(filial__in=filters['filial'])     
+               is_filter = True       
+            if filters.get('struct'):
+               employees = employees.filter(struct__in=filters['struct'])
+               is_filter = True 
+            if filters.get('numtab'):
+               employees = employees.filter(num_tab__in=filters['numtab'])
+               is_filter = True 
+            if filters.get('curator'):
+               curator_logins = Employee.objects.filter(
+                  is_curator=True,
+                  name__in=filters['curator']
+               ).values_list('login', flat=True)               
+               employees = employees.filter(curator_login__in=curator_logins)
+               is_filter = True   
+            if filters.get('hire_date_from'):
+               hire_from = datetime.strptime(filters['hire_date_from'], '%d.%m.%Y').date()
+               employees = employees.filter(hire_date__gte=hire_from)          
+               is_filter = True  
+            if filters.get('hire_date_to'):
+               hire_to = datetime.strptime(filters['hire_date_to'], '%d.%m.%Y').date()
+               employees = employees.filter(hire_date__lte=hire_to)
+               is_filter = True 
+            if filters.get('tg_date_from'):
+               tg_from = datetime.strptime(filters['tg_date_from'], '%d.%m.%Y').date()
+               employees = employees.filter(telegram_registration_date__gte=tg_from)   
+               is_filter = True        
+            if filters.get('tg_date_to'):
+               tg_to = datetime.strptime(filters['tg_date_to'], '%d.%m.%Y').date()
+               employees = employees.filter(telegram_registration_date__lte=tg_to)
+               is_filter = True 
+            if filters.get('own'):
+               employees = employees.filter(curator_login=cur_login)   
+               is_filter = True 
+             
+              
+         
+         # Подготовка данных для ответа
+         employees_data = []
+         for emp in employees:
+            if (emp.curator_login):
+               curator = Employee.objects.filter(login=emp.curator_login).first()
+            else:
+               curator = None
+            employees_data.append({
+               'id': emp.id,
+               'name': emp.name,
+               'filial': emp.filial.name if emp.filial else None,
+               'struct': emp.struct.name if emp.struct else None,
+               'num_tab': emp.num_tab,
+               'hire_date': emp.hire_date.strftime('%d.%m.%Y') if emp.hire_date else None,
+               'telegram_registration_date': emp.telegram_registration_date.strftime('%d.%m.%Y') if emp.telegram_registration_date else None,
+               'curator_login': emp.curator_login,
+               'curator': f"{curator.name}" if curator else None,
+            })
+
+         return JsonResponse({
+               'employees': employees_data,
+               'is_filter': is_filter
+         })
+         
+      except Exception as e:
+         return JsonResponse({'Ошибка': str(e)}, status=400)
+   
+   return JsonResponse({'error': 'Ошибка запроса'}, status=400)   

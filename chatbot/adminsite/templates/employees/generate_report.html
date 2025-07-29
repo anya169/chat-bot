@@ -7,7 +7,7 @@
    <link rel="stylesheet" href="{% static '/css/common.css' %}?v={% now 'U' %}">
    <link rel="stylesheet" href="{% static '/css/air-datepicker.css' %}?v={% now 'U' %}">
 </head>
-<body class='layout'>
+<body class='layout' data-username='{{ request.user.username|default:"anonymous"|escapejs }}'>
    <div class="sidebar">
       <a href="{% url 'curator_account' %}">
          <img src="{% static 'images/logo.svg' %}" class="logo-svg" alt="Логотип">
@@ -35,7 +35,9 @@
                   <input type="checkbox" id="select_all"> 
                      Выбрать всех
                </label>
+               <button id="reset-filters" class="button">Сбросить фильтры</button>
             </div>
+            
             <form action="{% url 'download_report' %}" method="post">
                      {% csrf_token %}
                      <button type="submit" class="report-button button">Сформировать отчёт</button>
@@ -61,7 +63,7 @@
                            {% for employee in employees %}
                            <div class="dropdown-item">
                               <label class="checkbox-container">
-                                 <input type="checkbox" name="filial_filter" value="{{ employee.id }}">
+                                 <input type="checkbox" name="filial_filter" value="{{ employee.name }}">
                                  <span class="checkmark"></span>
                                  <span>{{ employee.name }}</span> 
                               </label>
@@ -137,6 +139,28 @@
                      </div>   
                   </th>
                   <th>
+                     <div class="dropdown">
+                        <button class="dropdown-toggle" type="button" id="curatorDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           Куратор
+                           <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="curatorDropdown">
+                           <input class="search" type="text" placeholder="Поиск..." id="name-search" 
+                              style="background-image: url('{% static 'images/search.svg' %}')">
+                           <button class="reset-button">Сбросить все</button>
+                           {% for curator in curators %}
+                           <div class="dropdown-item">
+                              <label class="checkbox-container">
+                                 <input type="checkbox" name="curator_filter" value="{{ curator.name }}">
+                                 <span class="checkmark"></span>
+                                 <span>{{ curator.name }}</span> 
+                              </label>
+                           </div>
+                           {% endfor %}
+                        </div>
+                     </div>   
+                  </th>
+                  <th>
                      <button class="dropdown-toggle" type="button" id="hireDateDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                            Дата приема
                            <span class="dropdown-arrow">▼</span>
@@ -175,7 +199,8 @@
                            name="date"
                            readonly
                            required
-                        />    
+                        />  
+                        <button class="reset-date">Сбросить все</button>  
                   </th>
                   <th>
                      <button class="dropdown-toggle" type="button" id="hireDateDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -216,7 +241,8 @@
                            name="date"
                            readonly
                            required
-                        />    
+                        /> 
+                        <button class="reset-date">Сбросить все</button>     
                   </th>
                </tr>
             </thead>
@@ -236,11 +262,12 @@
                         {{ employee.name }}
                      </a>
                   </td>
-                  <td>{{ employee.filial.name|default:"-" }}</td>
-                  <td>{{ employee.struct.name|default:"-" }}</td>
+                  <td>{{ employee.filial|default:"-" }}</td>
+                  <td>{{ employee.struct|default:"-" }}</td>
                   <td>{{ employee.num_tab|default:"-" }}</td>
-                  <td>{{ employee.hire_date|date:"d.m.Y"|default:"-" }}</td>
-                  <td>{{ employee.telegram_registration_date|date:"d.m.Y"|default:"-" }}</td>
+                  <td>{{ employee.curator|default:"-" }}</td>
+                  <td>{{ employee.hire_date|default:"-" }}</td>
+                  <td>{{ employee.telegram_registration_date|default:"-" }}</td>
                </tr>
                {% empty %}
                <tr>
@@ -261,3 +288,6 @@
    
 </body>
 </html>
+<script>
+  const FILTER_EMPLOYEES_URL = "{% url 'filter_employees' %}";
+</script>
