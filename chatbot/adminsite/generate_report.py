@@ -4,9 +4,11 @@ from openpyxl.styles import Font
 from .models import *
 from pathlib import Path
 
-def generate_report(cur_curator_login):
+def generate_report(cur_curator_login, ids):
    try:
+      #получаем куратора и сотрудников
       curator = Employee.objects.filter(login = cur_curator_login).first()
+      filtered_employees = Employee.objects.filter(id__in = ids)
       
       #загружаем шаблон
       current_dir = Path(__file__).parent
@@ -17,27 +19,23 @@ def generate_report(cur_curator_login):
       #получаем текущее время и форматируем его
       current_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")
 
-      #получаем всех сотрудников куратора
-      curators_employees = Employee.objects.filter(curator_login = cur_curator_login)
       #получаем все существующие опросы
       polls = Poll.objects.all()
 
       #заполняем шапку
       ws["A1"] = ws["A1"].value.replace("{{ date }}", current_datetime)
       ws["A2"] = ws["A2"].value.replace("{{ curator_name }}", curator.name)
-      ws["A3"] = ws["A3"].value.replace("{{ count }}", str(curators_employees.count()))
+      ws["A3"] = ws["A3"].value.replace("{{ count }}", str(filtered_employees.count()))
       
       #начинаем выводить информацию с 5 строки
       current_row = 5
       
       for poll in polls:
          #сотрудники, прошедшие этот опрос
-         employees = Employee.objects.filter(
+         current_employees = filtered_employees.filter(
             answer__question__poll=poll
          ).distinct()
-         current_employees = curators_employees.filter(
-            id__in=employees.values('id')
-         ).distinct()
+        
          #если нет сотрудников, прошедших этот опрос, пропускаем его
          if not current_employees:
             continue

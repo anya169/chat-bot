@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                dropdownMenu.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
                   checkbox.checked = false;
                });
+               updateEmployees();
             });
          });
 
@@ -151,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
                   
          // Работа с календарями
          function initDatePickers() {
-            // Инициализация календарей с jQuery
             const hireDateFrom = $(".hireDateFrom");
             const hireDateTo = $(".hireDateTo");
             const tgDateFrom = $(".tgDateFrom");
@@ -201,8 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
                });
             }
          }
-
-         // Инициализация после загрузки DOM
          $(document).ready(function() {
             initDatePickers();
          });
@@ -348,5 +346,68 @@ document.addEventListener('DOMContentLoaded', function() {
          return cookieValue;
       }   
 
+
+      document.getElementById('report-button').addEventListener('click', generateReport);
+
+      //сбор отмеченных сотрудников
+      function getSelectedEmployees() {
+         return Array.from(document.querySelectorAll('.employee-checkbox:checked'))
+            .map(checkbox => {
+                  const id = Number(checkbox.value);
+                  
+                  return { id: id }; 
+            })
+            .filter(emp => emp !== null);  //удаляем некорректные записи
+      }
+
+      //отправка данных для отчета
+      async function generateReport() {
+            const selectedEmployees = getSelectedEmployees();
+         
+         if (selectedEmployees.length === 0) {
+            alert('Пожалуйста, выберите хотя бы одного сотрудника');
+            return;
+         }
+
+         try {
+
+            // Отправка данных на сервер
+            const response = await fetch(GENERATE_REPORT_URL, {
+                  method: 'POST',
+                  headers: {
+                     'Content-Type': 'application/json',
+                     'X-CSRFToken': getCookie('csrftoken'),
+                  },
+                  body: JSON.stringify({
+                     employees: selectedEmployees
+                  })
+            });
+
+            if (!response.ok) throw new Error('Ошибка сервера');
+        
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'report.xlsx'; // значение по умолчанию
+
+            if (contentDisposition) {
+               const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+               if (filenameMatch && filenameMatch[1]) {
+                  filename = filenameMatch[1];
+               }
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename; // Используем имя файла из заголовка
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        
+         } catch (error) {
+            alert(error);
+         }
+      }
 });
 

@@ -8,6 +8,8 @@ from django.http import FileResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 import json
 from datetime import datetime
+from django.http import HttpResponse
+
 
 
 #авторизация
@@ -136,15 +138,15 @@ def report_page(request):
                   'curators': curators, 
                   'current_user': request.user.username,})
 
-#генерация и скачивание отчета
-@require_http_methods(["GET", "POST"])
+
 def download_report(request):
    try:
       #генерируем отчет 
+      data = json.loads(request.body)
+      ids = [str(emp['id']) for emp in data['employees']]
       #импортируем функцию
       from .generate_report import generate_report
-      #передаем логин куратора
-      report_filename = generate_report(request.user.username)
+      report_filename = generate_report(request.user.username, ids)
       
       if not report_filename or not os.path.exists(report_filename):
          from django.http import HttpResponse
@@ -153,12 +155,13 @@ def download_report(request):
       #открываем файл в бинарном режиме
       file = open(report_filename, 'rb')
       response = FileResponse(file)
-   
+      response['Content-Disposition'] = f'attachment; filename="{os.path.basename(report_filename)}"'
+
       return response
       
    except Exception as e:
       return HttpResponse(f"Ошибка: {str(e)}", status=500)
-  
+      
 #информация о сотруднике
 def employee(request, employee_id):
    employee = Employee.objects.filter(id=employee_id).first()

@@ -37,15 +37,10 @@
                </label>
                <button id="reset-filters" class="button">Сбросить фильтры</button>
             </div>
-            
-            <form action="{% url 'download_report' %}" method="post">
-                     {% csrf_token %}
-                     <button type="submit" class="report-button button">Сформировать отчёт</button>
-            </form>
+               <button type="button" id="report-button" class="report-button button">Сформировать отчёт</button>
          </div>
          
-         <form method="post" action="/your-filter-url/">
-            {% csrf_token %}
+        
             <table class="employee-table">
             <thead>
                <tr>
@@ -276,7 +271,7 @@
                {% endfor %}
             </tbody>
             </table>
-         </form> 
+
                  
          
            
@@ -290,4 +285,5 @@
 </html>
 <script>
   const FILTER_EMPLOYEES_URL = "{% url 'filter_employees' %}";
+  const GENERATE_REPORT_URL = "{% url 'download_report' %}";
 </script>
