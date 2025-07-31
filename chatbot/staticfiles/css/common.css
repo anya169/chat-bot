@@ -325,3 +325,34 @@ a:hover {
   z-index: 1000 !important; 
   position: absolute;
 }
+
+.pagination {
+   display: flex;
+   justify-content: center;
+   margin: 20px 0;
+   gap: 5px;
+}
+.page-item {
+   list-style: none;
+}
+.page-link {
+   padding: 8px 12px;
+   border: 1px solid #ddd;
+   text-decoration: none;
+   color: #0078C1;
+   border-radius: 4px;
+}
+.page-link:hover {
+   background-color: #f0f0f0;
+}
+.current {
+   padding: 8px 12px;
+   background-color: #0078C1;
+   color: white;
+   border: 1px solid #0078C1;
+   border-radius: 4px;
+}
+.disabled {
+   color: #6c757d;
+   pointer-events: none;
+}

@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 import json
 from datetime import datetime
 from django.http import HttpResponse
-
+from django.core.paginator import Paginator
 
 
 #авторизация
@@ -107,6 +107,7 @@ def chat_with_employee(request, employee_id):
   
 #страница для формирования отчета  
 def report_page(request):
+   
    #передаем всех сотрудников
    employees = Employee.objects.filter(is_curator = False)
    filials = Filial.objects.all()
@@ -130,13 +131,19 @@ def report_page(request):
                'curator_login': emp.curator_login,
                'curator': f"{curator.name}" if curator else None
             })
+   paginator = Paginator(data, 50)  #по 50 строк на странице
+   page_number = request.GET.get('page', 1)
+   page_obj = paginator.get_page(page_number)
    return render(request, 'employees/generate_report.html', 
-                 {'employees': data, 
+                 {'employees': page_obj.object_list, 
                   'filials': filials, 
                   'structs': structs, 
                   'numtabs': numtabs,
                   'curators': curators, 
-                  'current_user': request.user.username,})
+                  'current_user': request.user.username,
+                  'page_obj': page_obj,
+                  'page_range': paginator.get_elided_page_range(page_obj.number)
+               })
 
 
 def download_report(request):
@@ -241,12 +248,13 @@ def filter_employees(request):
             if filters.get('own'):
                employees = employees.filter(curator_login=cur_login)   
                is_filter = True 
-             
-              
-         
+         employees = employees.order_by('-hire_date')  
+         paginator = Paginator(employees, 50)  #по 50 строк на странице
+         page_number = filters.get('page', 1)
+         page_obj = paginator.get_page(page_number)
          # Подготовка данных для ответа
          employees_data = []
-         for emp in employees:
+         for emp in page_obj.object_list:
             if (emp.curator_login):
                curator = Employee.objects.filter(login=emp.curator_login).first()
             else:
@@ -262,10 +270,21 @@ def filter_employees(request):
                'curator_login': emp.curator_login,
                'curator': f"{curator.name}" if curator else None,
             })
-
+            
          return JsonResponse({
                'employees': employees_data,
-               'is_filter': is_filter
+               'is_filter': is_filter,
+               'page_obj': {
+                  'number': page_obj.number,
+                  'has_previous': page_obj.has_previous(),
+                  'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
+                  'has_next': page_obj.has_next(),
+                  'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+                  'paginator': {
+                     'num_pages': page_obj.paginator.num_pages
+                  }
+               },
+               'page_range': list(range(1, paginator.num_pages + 1))    
          })
          
       except Exception as e:

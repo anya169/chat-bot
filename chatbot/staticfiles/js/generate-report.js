@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
          }); 
 
          //обновление списка сотрудников
-         async function updateEmployees() {
+         async function updateEmployees(page = 1) {
             //собираем параметры фильтрации по всем категориям
                const filters = {
                   name: getSelectedValues('nameDropdown'),
@@ -231,7 +231,8 @@ document.addEventListener('DOMContentLoaded', function() {
                   tg_date_to: document.querySelector('.tgDateTo').value,
                   curator:  getSelectedValues('curatorDropdown'),
                   all: selectAllCheckbox.checked,
-                  own: filterCheckbox.checked
+                  own: filterCheckbox.checked,
+                  page: page
                };
 
             try {
@@ -250,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
                const data = await response.json();
                
                //обновляем таблицу
-               updateEmployeeTable(data.employees, data.is_filter);
+               updateEmployeeTable(data.employees, data.is_filter, data.page_obj, data.page_range);
                
             } catch (error) {
                console.error('Ошибка при фильтрации:', error);
@@ -267,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
    
 
          //функция обновления таблицы
-         function updateEmployeeTable(employees, is_filter) {
+         function updateEmployeeTable(employees, is_filter, page_obj, page_range) {
             const tbody = document.querySelector('.employee-table tbody');
             tbody.innerHTML = ''; //очищаем таблицу
             
@@ -277,60 +278,70 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             //заполняем таблицу новыми данными
-            if (is_filter == true){
-               employees.forEach(employee => {
-                  const row = document.createElement('tr');
-                  
-                  row.innerHTML = `
-                        <td>
-                           <input type="checkbox" id="employee_${employee.id}" 
-                                 name="selected_employees" value="${employee.id}" 
-                                 class="employee-checkbox" checked>
-                           <label for="employee_${employee.id}"></label>
-                        </td>
-                        <td>
-                           <a href="/employee/${employee.id}" class="personal">
-                              ${employee.name}
-                           </a>
-                        </td>
-                        <td>${employee.filial || '-'}</td>
-                        <td>${employee.struct || '-'}</td>
-                        <td>${employee.num_tab || '-'}</td>
-                        <td>${employee.curator || '-'}</td>
-                        <td>${employee.hire_date || '-'}</td>
-                        <td>${employee.telegram_registration_date || '-'}</td>
-                  `;
-                  
-                  tbody.appendChild(row);
+            employees.forEach(employee => {
+               const row = document.createElement('tr');
+               
+               row.innerHTML = `
+                     <td>
+                        <input type="checkbox" id="employee_${employee.id}" 
+                              name="selected_employees" value="${employee.id}" 
+                              class="employee-checkbox" ${is_filter ? 'checked' : ''}>
+                        <label for="employee_${employee.id}"></label>
+                     </td>
+                     <td>
+                        <a href="/employee/${employee.id}" class="personal">
+                           ${employee.name}
+                        </a>
+                     </td>
+                     <td>${employee.filial || '-'}</td>
+                     <td>${employee.struct || '-'}</td>
+                     <td>${employee.num_tab || '-'}</td>
+                     <td>${employee.curator || '-'}</td>
+                     <td>${employee.hire_date || '-'}</td>
+                     <td>${employee.telegram_registration_date || '-'}</td>
+               `;
+               
+               tbody.appendChild(row);
+            });
+
+            const pagination = document.querySelector('.pagination');
+            pagination.innerHTML = '';
+            
+            if (page_obj.paginator.num_pages > 1) {
+               if (page_obj.has_previous) {
+                     pagination.innerHTML += `<a href="#" class="page-link" data-page="1">&laquo; Первая</a>`;
+                     pagination.innerHTML += `<a href="#" class="page-link" data-page="${page_obj.previous_page_number}">Предыдущая</a>`;
+               }
+               
+               page_range.forEach(page => {
+                     if (page == page_obj.number) {
+                        pagination.innerHTML += `<span class="current">${page}</span>`;
+                     } else {
+                        pagination.innerHTML += `<a href="#" class="page-link" data-page="${page}">${page}</a>`;
+                     }
                });
-            } else {
-               employees.forEach(employee => {
-                  const row = document.createElement('tr');
-                  
-                  row.innerHTML = `
-                        <td>
-                           <input type="checkbox" id="employee_${employee.id}" 
-                                 name="selected_employees" value="${employee.id}" 
-                                 class="employee-checkbox">
-                           <label for="employee_${employee.id}"></label>
-                        </td>
-                        <td>
-                           <a href="/employee/${employee.id}" class="personal">
-                              ${employee.name}
-                           </a>
-                        </td>
-                        <td>${employee.filial || '-'}</td>
-                        <td>${employee.struct || '-'}</td>
-                        <td>${employee.num_tab || '-'}</td>
-                        <td>${employee.curator || '-'}</td>
-                        <td>${employee.hire_date || '-'}</td>
-                        <td>${employee.telegram_registration_date || '-'}</td>
-                  `;
-                  
-                  tbody.appendChild(row);
-               });
+               
+               if (page_obj.has_next) {
+                  pagination.innerHTML += `
+               <a href="#" data-page="${page_obj.next_page_number}" class="page-link">Следующая</a>
+               <a href="#" data-page="${page_obj.paginator.num_pages}" class="page-link">Последняя &raquo;</a>
+                `;
+               }
             }
-         }
+         setupPaginationHandlers();
+      }
+      function setupPaginationHandlers() {
+         document.querySelectorAll('.page-link').forEach(link => {
+            link.removeEventListener('click', handlePageClick); 
+            link.addEventListener('click', handlePageClick); 
+         });
+      }
+
+      function handlePageClick(e) {
+         e.preventDefault();
+         const page = this.getAttribute('data-page');
+         updateEmployees(page);
+      }
       function getCookie(name) {
          let cookieValue = null;
          if (document.cookie && document.cookie !== '') {
