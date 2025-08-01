@@ -109,7 +109,7 @@ def chat_with_employee(request, employee_id):
 def report_page(request):
    
    #передаем всех сотрудников
-   employees = Employee.objects.filter(is_curator = False)
+   employees = Employee.objects.filter(is_curator = False).order_by('-hire_date')  
    filials = Filial.objects.all()
    structs = Struct.objects.all()
    numtabs = employees.values_list('num_tab', flat=True)

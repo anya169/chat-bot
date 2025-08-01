@@ -3,13 +3,21 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 from create_bot import bot, dp
-from core.models import Employee
+from core.models import *
 from asgiref.sync import sync_to_async
 from handlers.after_1_month import Form_1
 from handlers.after_3_month import Form_3
 from handlers.after_6_month import Form_6
 from bot.keyboards import ready_kb
 import logging
+
+
+async def has_completed_poll(employee_id, poll_name): #проверяем, проходил ли сотрудник этот опрос до этого
+    poll = await sync_to_async(Poll.objects.get)(name=poll_name)
+    return await sync_to_async(
+        Answer.objects.filter(login_id=employee_id, question__poll=poll).exists
+    )()
+
 
 # Настройка логгирования
 logging.basicConfig(level=logging.INFO)
@@ -28,86 +36,88 @@ async def is_user_available(telegram_id):
         return False
 
 async def send_poll_after_1_month(employee_id):
-    try:
-        employee = await sync_to_async(Employee.objects.get)(id=employee_id)
-        if not await is_user_available(employee.telegram_id):
-            logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 1 месяц отложен")
-            return
-
-        state = dp.fsm.get_context(
-            bot=bot,
-            chat_id=employee.telegram_id,
-            user_id=employee.telegram_id
-        )
-        await state.set_state(Form_1.how_are_you)
-        
-        await bot.send_message(
-            chat_id=employee.telegram_id,
-            text='Привет!\nПоздравляем с первым месяцем в команде!\n\n'
-                 'Чтобы оценить, как идут дела, предлагаем пройти опрос по чек-листу.\n\n'
-                 'Готов(а)? Нажимай кнопку «Готов(а)»',
-            reply_markup=ready_kb(employee.telegram_id)
-        )
-        logger.info(f"Опрос через 1 месяц отправлен сотруднику {employee_id}")
-    except Exception as e:
-        logger.error(f"Ошибка при отправке опроса через 1 месяц сотруднику {employee_id}: {e}")
+    if (not has_completed_poll(employee_id, "Опрос через месяц")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 1 месяц отложен")
+                return
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_1.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\nПоздравляем с первым месяцем в команде!\n\n'
+                    'Чтобы оценить, как идут дела, предлагаем пройти опрос по чек-листу.\n\n'
+                    'Готов(а)? Нажимай кнопку «Готов(а)»',
+                reply_markup=ready_kb(employee.telegram_id)
+            )
+            logger.info(f"Опрос через 1 месяц отправлен сотруднику {employee_id}")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке опроса через 1 месяц сотруднику {employee_id}: {e}")
 
 async def send_poll_after_3_month(employee_id):
     """Отправляет опрос через 3 месяца после трудоустройства"""
-    try:
-        employee = await sync_to_async(Employee.objects.get)(id=employee_id)
-        if not await is_user_available(employee.telegram_id):
-            logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 3 месяца отложен")
-            return
+    if (not has_completed_poll(employee_id, "Опрос через 3 месяца")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 3 месяца отложен")
+                return
 
-        state = dp.fsm.get_context(
-            bot=bot,
-            chat_id=employee.telegram_id,
-            user_id=employee.telegram_id
-        )
-        await state.set_state(Form_3.how_are_you)
-        
-        await bot.send_message(
-            chat_id=employee.telegram_id,
-            text='Привет!\n\n'
-                 'Три месяца в компании — отличный результат!\n\n'
-                 'Твой адаптационный период подходит к концу, и мне важно узнать, '
-                 'как у тебя идут дела. Поделись своими впечатлениями, пожалуйста, '
-                 'ответив на предложенные вопросы.\n\n'
-                 'Готов(а)? Нажимай кнопку «Готов(а)»',
-            reply_markup=ready_kb(employee.telegram_id)
-        )
-        logger.info(f"Опрос через 3 месяца отправлен сотруднику {employee_id}")
-    except Exception as e:
-        logger.error(f"Ошибка при отправке опроса через 3 месяца сотруднику {employee_id}: {e}")
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_3.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\n\n'
+                    'Три месяца в компании — отличный результат!\n\n'
+                    'Твой адаптационный период подходит к концу, и мне важно узнать, '
+                    'как у тебя идут дела. Поделись своими впечатлениями, пожалуйста, '
+                    'ответив на предложенные вопросы.\n\n'
+                    'Готов(а)? Нажимай кнопку «Готов(а)»',
+                reply_markup=ready_kb(employee.telegram_id)
+            )
+            logger.info(f"Опрос через 3 месяца отправлен сотруднику {employee_id}")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке опроса через 3 месяца сотруднику {employee_id}: {e}")
 
 async def send_poll_after_6_month(employee_id):
     """Отправляет опрос через 6 месяцев после трудоустройства"""
-    try:
-        employee = await sync_to_async(Employee.objects.get)(id=employee_id)
-        if not await is_user_available(employee.telegram_id):
-            logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 6 месяцев отложен")
-            return
+    if (not has_completed_poll(employee_id, "Опрос через 6 месяцев")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 6 месяцев отложен")
+                return
 
-        state = dp.fsm.get_context(
-            bot=bot,
-            chat_id=employee.telegram_id,
-            user_id=employee.telegram_id
-        )
-        await state.set_state(Form_6.how_are_you)
-        
-        await bot.send_message(
-            chat_id=employee.telegram_id,
-            text='Привет!\n\n'
-                 'Поздравляю с достижением экватора трудового стажа в нашей компании! '
-                 'За этот год ты, несомненно, приобрел немало знаний и опыта.\n\n'
-                 'Поделишься, как продвигается твоя работа? Ответы на наши вопросы помогут нам лучше понять твою ситуацию.\n\n'
-                 'Готов(а)? Нажимай кнопку «Готов(а)»',
-            reply_markup=ready_kb(employee.telegram_id)
-        )
-        logger.info(f"Опрос через 6 месяцев отправлен сотруднику {employee_id}")
-    except Exception as e:
-        logger.error(f"Ошибка при отправке опроса через 6 месяцев сотруднику {employee_id}: {e}")
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_6.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\n\n'
+                    'Поздравляю с достижением экватора трудового стажа в нашей компании! '
+                    'За этот год ты, несомненно, приобрел немало знаний и опыта.\n\n'
+                    'Поделишься, как продвигается твоя работа? Ответы на наши вопросы помогут нам лучше понять твою ситуацию.\n\n'
+                    'Готов(а)? Нажимай кнопку «Готов(а)»',
+                reply_markup=ready_kb(employee.telegram_id)
+            )
+            logger.info(f"Опрос через 6 месяцев отправлен сотруднику {employee_id}")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке опроса через 6 месяцев сотруднику {employee_id}: {e}")
 
 def schedule_poll(scheduler, employee, days_delta, send_func):
     """Планирует отправку опроса на указанное количество дней после hire_date"""
