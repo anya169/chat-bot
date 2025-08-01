@@ -30,7 +30,7 @@ def generate_report(cur_curator_login, ids):
       #начинаем выводить информацию с 5 строки
       current_row = 5
       
-      for poll in polls:
+      for poll in polls:   
          #сотрудники, прошедшие этот опрос
          current_employees = filtered_employees.filter(
             answer__question__poll=poll

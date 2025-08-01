@@ -191,10 +191,50 @@ def employee(request, employee_id):
    
 #статистика
 def statistic(request):
-   employee = Employee.objects.all()
- 
+   employees = Employee.objects.filter(is_curator=False)
+   filials = Filial.objects.all()
+   #сотрудники, воспользовавшиеся ботом
+   bot_employees = employees.filter(
+      telegram_registration_date__isnull=False     
+   )
+   #не воспользовавшиеся
+   not_bot_employees = employees.filter(telegram_registration_date__isnull=True)
+   bot_chart_data = {
+      'labels': ['Зарегистрированы в боте', 'Не зарегистрированы'],
+      'data': [bot_employees.count(), not_bot_employees.count()],
+      'colors': ['#0078C1', '#EEEEEE']
+   }
+   #люди, воспользовавшиеся ботом по филиалам
+   bot_chart_filial_data = {
+      'labels': [],
+      'bot_users': [],
+      'total_users': [],
+      'percentages': []
+   }
+   for filial in filials:
+         # Все сотрудники филиала
+         all = employees.filter(filial=filial).count()
+         if all == 0:
+            continue
+         # Сотрудники филиала с ботом
+         bot_users = employees.filter(
+            filial=filial,
+            telegram_registration_date__isnull=False
+         ).count()
+         
+         # Процент использования
+         percentage = round((bot_users / all) * 100) if all > 0 else 0
+         
+         bot_chart_filial_data['labels'].append(filial.name)
+         bot_chart_filial_data['bot_users'].append(bot_users)
+         bot_chart_filial_data['total_users'].append(all)
+         bot_chart_filial_data['percentages'].append(percentage)
+         
+  
    return render(request, 'statistic/statistic.html', {
-      'employee': employee
+      'employee': employees,
+      'bot_chart_data': bot_chart_data,
+      'bot_chart_filial_data': bot_chart_filial_data,
    })
 
 #фильтрация
