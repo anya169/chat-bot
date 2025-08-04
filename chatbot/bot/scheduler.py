@@ -142,10 +142,27 @@ def schedule_poll(scheduler, employee, days_delta, send_func):
     except Exception as e:
         logger.error(f"Ошибка при планировании опроса для сотрудника {employee.id}: {e}")
 
+
+async def log_scheduler_status(scheduler: AsyncIOScheduler):
+    """Логирует статус планировщика каждую минуту"""
+    logger.info(
+        f"Scheduler: запущен"
+    )
+
 async def schedule_polls():
     """Основная функция планирования опросов"""
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     try:
+        #каждую минуту проверяем статус
+        scheduler.add_job(
+        log_scheduler_status,
+        'interval',
+        minutes=1,
+        args=[scheduler],
+        id='scheduler',
+        replace_existing=True
+        )
+         
         employees = await sync_to_async(list)(Employee.objects.exclude(hire_date__isnull=True))
         logger.info(f"Найдено {len(employees)} сотрудников для планирования опросов")
         
