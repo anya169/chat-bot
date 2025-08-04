@@ -11,7 +11,7 @@ sys.path.append(r'C:\Users\oxina\OneDrive\Рабочий стол\работа\c
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
 django.setup()
 
-from core.models import Filial
+
 
 # Асинхронное получение списка филиалов
 async def get_branches():

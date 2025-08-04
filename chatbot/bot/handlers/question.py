@@ -63,7 +63,7 @@ async def send_via_websocket(employee_id, message_text, sender_id):
             del active_websockets[employee_id]
         raise
 
-@question_router.message(Command('хочузадатьвопрос'))
+@question_router.message(Command('askquestion'))
 @question_router.message(F.text == "Хочу задать вопрос")
 async def capture_question(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
