@@ -74,7 +74,7 @@ def tell_about_myself_kb(user_telegram_id: int):
         [KeyboardButton(text = "Рассказать о себе")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -88,7 +88,7 @@ def service_number_kb(user_telegram_id: int):
         [KeyboardButton(text = "Я не знаю свой табельный номер")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -102,7 +102,7 @@ def reviewed_kb(user_telegram_id: int):
         [KeyboardButton(text = "Ознакомился(ась)")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -116,7 +116,7 @@ def task_kb(user_telegram_id: int):
         [KeyboardButton(text = "Задание")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -130,7 +130,7 @@ def done_kb(user_telegram_id: int):
         [KeyboardButton(text = "Я заполнил(а)")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -144,7 +144,7 @@ def recommendations_kb(user_telegram_id: int):
         [KeyboardButton(text = "Получить рекомендации")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -158,7 +158,7 @@ def question_kb(user_telegram_id: int):
         [KeyboardButton(text = "Хочу задать вопрос")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -172,7 +172,7 @@ def ready_kb(user_telegram_id: int):
         [KeyboardButton(text = "Готов(а)")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -187,10 +187,29 @@ def yes_or_no_kb(user_telegram_id: int):
         [KeyboardButton(text = "Нет")]
     ]
     if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text = "Создать опрос")]) # кнопка, которая видна только админу
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
         one_time_keyboard = True # клавиатура скроется после нажатия
     )
     return keyboard
+
+#клавиатура подтверждения
+def accept_kb():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Подтвердить")],
+            [KeyboardButton(text="Отредактировать")]
+        ],
+        resize_keyboard=True
+    )
+
+#клавиатура для прикрепления вложений
+def attachment_kb():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Не прикреплять")],
+        ],
+        resize_keyboard=True
+    )    

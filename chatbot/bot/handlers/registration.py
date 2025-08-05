@@ -240,6 +240,6 @@ async def capture_recommendations(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Если возникнут вопросы, смело обращайся в чат — мы с куратором оперативно предоставим необходимую помощь.\n\n"
-                             "Для написания вопроса напиши \"/хочузадатьвопрос\" или нажми на кнопку \"Хочу задать вопрос\".\n\n"
+                             "Для написания вопроса напиши \"/askquestion\" или нажми на кнопку \"Хочу задать вопрос\".\n\n"
                              "До встречи!", reply_markup = question_kb(message.from_user.id))
     await state.clear()
