@@ -12,8 +12,9 @@ from aiogram.types import Message, ReplyKeyboardRemove, ContentType
 from aiogram.utils.chat_action import ChatActionSender
 from aiogram.filters.state import State, StatesGroup
 from keyboards import accept_kb, attachment_kb
-from aiogram.exceptions import TelegramBadRequest
-
+from aiogram import types
+from aiogram.types import FSInputFile 
+from pathlib import Path
 from core.models import Employee
 
 sys.path.append('C:/chat-bot/chatbot')
@@ -74,34 +75,59 @@ async def no_attachment(message: Message, state: FSMContext):
 )
 async def process_attachment(message: Message, state: FSMContext):
    try:
+      attachment_data = None
+      #если прикрепили фото
       if message.photo:
-         file = await bot.get_file(message.photo[-1].file_id)
-         os.makedirs("media", exist_ok=True)
-         file_path = f"media/{file.file_id}.jpg"
+         photo = message.photo[-1]
+         file = await bot.get_file(photo.file_id)
+         os.makedirs("media/mailings", exist_ok=True)
+         
+         #формируем уникальное имя файла
+         file_path = f"media/mailings/{photo.file_id}.jpg"
+         
+         #скачиваем файл на сервер
          await bot.download_file(file.file_path, file_path)
-         await state.update_data(attachment={
-               'type': 'photo', 
-               'path': file_path,
-               'file_id': message.photo[-1].file_id  
-         })
+         
+         attachment_data = {
+            'type': 'photo',
+            'file_id': photo.file_id,
+            'path': file_path,
+            'telegram_file': file  #сохраняем объект файла
+         }
+         
       elif message.document:
-         file_id = message.document.file_id
-         # Для документов сразу скачиваем файл
-         file = await bot.get_file(file_id)
-         os.makedirs("media", exist_ok=True)
-         file_path = f"media/{file_id}_{message.document.file_name}"
+         #для документов
+         doc = message.document
+         file = await bot.get_file(doc.file_id)
+         
+         os.makedirs("media/mailings", exist_ok=True)
+         
+         #сохраняем оригинальное имя файла
+         file_name = doc.file_name or f"document_{doc.file_id}"
+         file_path = f"media/mailings/{file_name}"
+         
          await bot.download_file(file.file_path, file_path)
-         await state.update_data(attachment={
-               'type': 'document', 
-               'file_id': file_id,
-               'path': file_path,
-               'file_name': message.document.file_name
-         })
+         
+         attachment_data = {
+            'type': 'document',
+            'file_id': doc.file_id,
+            'path': file_path,
+            'file_name': file_name,
+            'telegram_file': file
+         }
       
-      await show_confirmation(message, state)
-   except TelegramBadRequest as e:
-      await message.answer("Произошла ошибка при обработке файла. Пожалуйста, попробуйте еще раз.")
-      await state.set_state(Create_mailing.attachment)
+      if attachment_data:
+         await state.update_data(attachment=attachment_data)
+         await show_confirmation(message, state)
+      else:
+         await message.answer("Не удалось обработать вложение. Попробуйте еще раз.")
+         
+   except Exception as e:
+      print(f"Ошибка при обработке вложения: {str(e)}")
+      await message.answer(
+         "Произошла ошибка при обработке файла. Пожалуйста, попробуйте еще раз или отправьте другой файл.",
+         reply_markup=attachment_kb()
+      )
 
 async def show_confirmation(message: Message, state: FSMContext):
    data = await state.get_data()
@@ -120,16 +146,23 @@ async def show_confirmation(message: Message, state: FSMContext):
       await asyncio.sleep(short_delay)
       
       try:
-         if attachment and attachment['type'] == 'photo':
-               with open(attachment['path'], 'rb') as photo:
+         if attachment:
+               #создаем полный путь к файлу
+               file_path = Path(attachment['path'])
+               
+               if attachment['type'] == 'photo':
+                  photo = FSInputFile(file_path)
                   await message.answer_photo(
                      photo=photo,
                      caption=text,
                      reply_markup=accept_kb(),
                      parse_mode="HTML"
                   )
-         elif attachment and attachment['type'] == 'document':
-               with open(attachment['path'], 'rb') as doc:
+               elif attachment['type'] == 'document':
+                  doc = FSInputFile(
+                     file_path,
+                     filename=attachment.get('file_name', file_path.name)
+                  )
                   await message.answer_document(
                      document=doc,
                      caption=text,
@@ -142,10 +175,12 @@ async def show_confirmation(message: Message, state: FSMContext):
                   reply_markup=accept_kb(),
                   parse_mode="HTML"
                )
+               
       except Exception as e:
+         print(f"Ошибка при показе подтверждения: {str(e)}")
          await message.answer(
-               "Не удалось отобразить вложение. Пожалуйста, попробуйте еще раз.",
-               reply_markup=attachment_kb()
+            "Не удалось отобразить вложение. Пожалуйста, попробуйте отправить файл еще раз.",
+            reply_markup=attachment_kb()
          )
          await state.set_state(Create_mailing.attachment)
          return
@@ -173,16 +208,22 @@ async def send_mailing(message: Message, state: FSMContext):
    success_count = 0
    for employee in employees:
       try:
-         if attachment and attachment['type'] == 'photo':
-               with open(attachment['path'], 'rb') as photo:
+         if attachment:
+               file_path = Path(attachment['path'])
+               
+               if attachment['type'] == 'photo':
+                  photo = FSInputFile(file_path)
                   await bot.send_photo(
                      chat_id=employee.telegram_id,
                      photo=photo,
                      caption=f"<b>{name}</b>\n\n{description}",
                      parse_mode="HTML"
                   )
-         elif attachment and attachment['type'] == 'document':
-               with open(attachment['path'], 'rb') as doc:
+               elif attachment['type'] == 'document':
+                  doc = FSInputFile(
+                     file_path,
+                     filename=attachment.get('file_name', file_path.name)
+                  )
                   await bot.send_document(
                      chat_id=employee.telegram_id,
                      document=doc,
