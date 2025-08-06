@@ -129,7 +129,7 @@ async def show_confirmation(message: Message, state: FSMContext):
    attachments = data.get('attachments', [])
    
    text = (
-      f"Подтвердите содержимое рассылки. Если необходимо добавить еще вложения, добавьте по одному следующими после этого сообщения:\n\n"
+      f"Подтвердите содержимое рассылки. Если необходимо добавить еще вложения, нажмите Добавить еще файлы:\n\n"
       f"<b>Название:</b> {name}\n"
       f"<b>Описание:</b> {description}\n"
       f"<b>Количество вложений:</b> {len(attachments)}"
@@ -189,7 +189,15 @@ async def show_confirmation(message: Message, state: FSMContext):
          return
    
    await state.set_state(Create_mailing.accept)
-
+   
+@mailing_router.message(F.text == "Добавить ещё файлы", Create_mailing.accept)
+async def add_more_files(message: Message, state: FSMContext):
+   await message.answer(
+      "Прикрепите дополнительные файлы:",
+      reply_markup=attachment_kb()
+   )
+   await state.set_state(Create_mailing.attachment)
+    
 @mailing_router.message(F.text == "Подтвердить", Create_mailing.accept)
 async def send_mailing(message: Message, state: FSMContext):
    data = await state.get_data()

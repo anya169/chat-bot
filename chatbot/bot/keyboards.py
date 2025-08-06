@@ -219,7 +219,8 @@ def accept_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="Подтвердить")],
-            [KeyboardButton(text="Отредактировать")]
+            [KeyboardButton(text="Отредактировать")],
+            [KeyboardButton(text="Добавить ещё файлы")]
         ],
         resize_keyboard=True
     )
