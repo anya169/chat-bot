@@ -1,5 +1,5 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
-from create_bot import admins
+from create_bot import get_curators_telegram_ids
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import os
 import django
@@ -11,7 +11,9 @@ sys.path.append(r'C:\Users\oxina\OneDrive\Рабочий стол\работа\c
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
 django.setup()
 
-
+async def is_curator():
+    curators = await get_curators_telegram_ids()
+    return curators
 
 # Асинхронное получение списка филиалов
 async def get_branches():
@@ -73,7 +75,7 @@ def tell_about_myself_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Рассказать о себе")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -87,7 +89,7 @@ def service_number_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Я не знаю свой табельный номер")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -101,7 +103,7 @@ def reviewed_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Ознакомился(ась)")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -115,7 +117,7 @@ def task_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Задание")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -129,7 +131,7 @@ def done_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Я заполнил(а)")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -143,7 +145,7 @@ def recommendations_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Получить рекомендации")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -158,7 +160,7 @@ def question_kb(user_telegram_id: int):
         [KeyboardButton(text = "Хочу задать вопрос")],
         [KeyboardButton(text = "Вопросов нет")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -172,7 +174,7 @@ def ready_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Готов(а)")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -187,7 +189,7 @@ def yes_or_no_kb(user_telegram_id: int):
         [KeyboardButton(text = "Да")],
         [KeyboardButton(text = "Нет")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
@@ -203,7 +205,7 @@ def yes_or_no_maybe_kb(user_telegram_id: int):
         [KeyboardButton(text = "Нет")],
         [KeyboardButton(text = "Не имею понятия, что за приложение")]
     ]
-    if user_telegram_id in admins:
+    if user_telegram_id in is_curator():
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,

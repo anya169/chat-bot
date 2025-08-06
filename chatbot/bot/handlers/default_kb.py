@@ -1,6 +1,6 @@
 from aiogram import Bot
 from aiogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeDefault
-from create_bot import admins
+from create_bot import get_curators_telegram_ids
 
 async def set_default_command(bot: Bot):
    command = [
@@ -13,9 +13,11 @@ async def set_default_command(bot: Bot):
    admin_command = [
       BotCommand(command="createmailing", description="Создать рассылку")
    ]
-   print(f"Админские ID: {admins}")
-   for admin in admins:
-      await bot.set_my_commands(
-                  commands=admin_command,
-                  scope=BotCommandScopeChat(chat_id=admin) 
-               )
+   curators = await get_curators_telegram_ids()
+   print(f"Кураторы: {curators}")
+   if curators:
+      for curator in curators:
+         await bot.set_my_commands(
+                     commands=admin_command,
+                     scope=BotCommandScopeChat(chat_id=curator) 
+                  )
