@@ -155,7 +155,8 @@ def recommendations_kb(user_telegram_id: int):
 # клавиатура с кнопкой "Хочу задать вопрос"
 def question_kb(user_telegram_id: int):
     kb_list = [
-        [KeyboardButton(text = "Хочу задать вопрос")]
+        [KeyboardButton(text = "Хочу задать вопрос")],
+        [KeyboardButton(text = "Вопросов нет")]
     ]
     if user_telegram_id in admins:
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
@@ -185,6 +186,22 @@ def yes_or_no_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Да")],
         [KeyboardButton(text = "Нет")]
+    ]
+    if user_telegram_id in admins:
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
+    keyboard = ReplyKeyboardMarkup(
+        keyboard = kb_list,
+        resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
+        one_time_keyboard = True # клавиатура скроется после нажатия
+    )
+    return keyboard
+
+# клавиатура да/нет/не знаю
+def yes_or_no_maybe_kb(user_telegram_id: int):
+    kb_list = [
+        [KeyboardButton(text = "Да")],
+        [KeyboardButton(text = "Нет")],
+        [KeyboardButton(text = "Не имею понятия, что за приложение")]
     ]
     if user_telegram_id in admins:
         kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу

@@ -201,7 +201,7 @@ async def capture_do_task(message: Message, state: FSMContext):
         data = await state.get_data()
         await asyncio.sleep(short_delay)
         await message.answer(f'{data.get("name")}, отлично! Теперь мы знаем друг о друге лучше!\n\n'
-                             'Лично с куратором ты познакомишься позже, а пока прошу выполнить первое задание! '
+                             'Лично с куратором ты познакомишься чуть позже, а пока прошу выполнить первое задание! '
                              'Для этого нажми на кнопку \"Задание\".', reply_markup = task_kb(message.from_user.id))
     await state.set_state(Form.task)
 
@@ -212,7 +212,7 @@ async def capture_task(message: Message, state: FSMContext):
         await asyncio.sleep(short_delay)
         await message.answer("Согласно внутренним регламентирующим документам,"
                              "все молодые специалисты обязаны компании проходят психологическое тестирование.\n\n"
-                             "Для прохождения теста перейди по следующей ссылке: <a href='https://psytests.org/stress/ouslu-run.html'>психологический тест</a>.\n\n"
+                             "Для прохождения теста перейди по следующей ссылке: <a href='https://forms.yandex.ru/cloud/665e7565d046880010428699/'>психологический тест</a>.\n\n"
                              "После завершения тестирования вернись в диалог и подтверди выполнение, нажав кнопку \"Я заполнил(а)\".", 
                              reply_markup = done_kb(message.from_user.id), parse_mode = "HTML")
     await state.set_state(Form.welcome_day_information)
@@ -229,8 +229,8 @@ async def capture_welcome_day_information(message: Message, state: FSMContext):
                              'Дата и время встречи будут дополнительно сообщены куратором.\n\n' 
                              'Не упусти возможность!', reply_markup = ReplyKeyboardRemove())
         await asyncio.sleep(long_delay)
-        await message.answer(f'{data.get("name")}, поздравляю с началом нового этапа и желаю успехов в профессиональных начинаниях!\n\n'
-                             'Но чтобы первые трудовые дни прошли гладко, предлагаю несколько полезных советов, '
+        await message.answer('А пока время погрузиться в рабочую среду!\n'
+                             'Чтобы первые трудовые дни прошли гладко, предлагаю несколько полезных советов, '
                              'просто нажми кнопку \"Получить рекомендации\".', reply_markup = recommendations_kb(message.from_user.id))
     await state.set_state(Form.recommendations)
 

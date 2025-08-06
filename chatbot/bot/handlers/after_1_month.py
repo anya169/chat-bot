@@ -7,7 +7,7 @@ from aiogram.filters.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.chat_action import ChatActionSender
 from datetime import date, timedelta
-from keyboards import ready_kb, yes_or_no_kb, question_kb # клавиатуры
+from keyboards import ready_kb, yes_or_no_kb, question_kb, yes_or_no_maybe_kb # клавиатуры
 import os
 import django
 import sys
@@ -42,6 +42,7 @@ class Form_1(StatesGroup):
     question_11 = State()
     question_12 = State()
     question_13 = State()
+    question_14 = State()
     result = State()
     
 after_1_month_router = Router()
@@ -62,7 +63,7 @@ async def save_answer(employee, message_text, question_id):
         name = message_text,
         submission_date = timedelta(days = days_passed),
         login_id = employee.id,
-        question_id = question_id
+        question_id = question_id + 1
     )
     await sync_to_async(employee_answer.save)()
 
@@ -90,7 +91,7 @@ async def finish_poll(message: Message, state: FSMContext, question_id=None):
         await asyncio.sleep(short_delay)
         await message.answer(
             "Спасибо за предоставленную информацию!\n"
-            "Куратор изучит ответы и, если потребуется, свяжется с тобой!",
+            "Все твои ответы будут внимательно рассмотрены куратором. Если понадобится дополнительная поддержка или обсуждение отдельных моментов, он обязательно свяжется с тобой.",
             reply_markup =question_kb(message.from_user.id)
         )
     await state.clear()
@@ -99,10 +100,10 @@ async def finish_poll(message: Message, state: FSMContext, question_id=None):
 async def start_poll_after_1_month(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
-        await message.answer('Привет!\n'
-                             'Поздравляем с первым месяцем в команде!\n\n'
-                             'Чтобы оценить, как идут дела, предлагаем пройти опрос по чек-листу.\n\n'
-                             'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = ready_kb(message.from_user.id))
+        await message.answer('Привет!\n\n'
+                             'Поздравляю тебя с успешным стартом в нашей команде — прошёл уже целый месяц! \n'
+                             'Для того, чтобы мы могли вместе увидеть, насколько успешно идёт процесс адаптации и интеграции, предлагаю заполнить небольшой опрос по чек-листу обратной связи.\n'
+                             'Нажми кнопку «Готов(а)!», и мы начнем наш диалог!', reply_markup = ready_kb(message.from_user.id))
     await state.set_state(Form_1.how_are_you)
 
 @after_1_month_router.message(F.text == "Готов(а)", Form_1.how_are_you)
@@ -111,9 +112,12 @@ async def how_are_you(message: Message, state: FSMContext):
 
 @after_1_month_router.message(F.text, Form_1.track_passing)
 async def track_passing(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_1, "Прошел(а) ли трек в ГИД?", 2, yes_or_no_kb(message.from_user.id))
+    await handle_question(message, state, Form_1.question_1, "Удалось ли зайти в мобильное приложение ГИД?", 2, yes_or_no_maybe_kb(message.from_user.id))
 
-@after_1_month_router.message(F.text == "Да", Form_1.question_1)
+@after_1_month_router.message(
+    (F.text.lower() == "да"),
+    Form_1.question_1  
+)
 async def question_1_yes(message: Message, state: FSMContext):
     await handle_question(message, state, Form_1.yes_question_2, "Был ли полезным и информативным для тебя трек в приложении?", 3)
 
@@ -127,11 +131,14 @@ async def yes_question_3(message: Message, state: FSMContext):
 
 @after_1_month_router.message(F.text, Form_1.question_for_all)
 async def question_1_no(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_2, "Ты уже подписал(а) все необходимые документы?", 6)
+    await handle_question(message, state, Form_1.question_2, "Ты наверняка уже подписал (а) все необходимые документы для трудоустройства?", 6)
 
-@after_1_month_router.message(F.text == "Нет", Form_1.question_1)
+@after_1_month_router.message(
+    F.text.in_(["Нет", "Не имею понятия, что за приложение"]), 
+    Form_1.question_1
+)
 async def question_1_no(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_2, "Ты уже подписал(а) все необходимые документы?", 6)
+    await handle_question(message, state, Form_1.question_2, "Ты наверняка уже подписал (а) все необходимые документы для трудоустройства?", 6)
 
 @after_1_month_router.message(F.text, Form_1.question_2)
 async def question_2(message: Message, state: FSMContext):
@@ -143,46 +150,50 @@ async def question_3(message: Message, state: FSMContext):
 
 @after_1_month_router.message(F.text, Form_1.question_4)
 async def question_4(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_5, "Расскажи про рабочее место. Есть ли оно у тебя? Есть ли всё необходимое для работы?", 9)
+    await handle_question(message, state, Form_1.question_5, "Расскажи про рабочее место. Какое оно у тебя?", 9)
 
 @after_1_month_router.message(F.text, Form_1.question_5)
 async def question_5(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_6, "Все ли доступы для работы имеются у тебя? Каких не хватает?", 10)
+    await handle_question(message, state, Form_1.question_6, "Все ли необходимое для работы есть в нем?", 10)
 
 @after_1_month_router.message(F.text, Form_1.question_6)
 async def question_6(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_7, "Тебе рассказали про твои функциональные обязанности?", 11)
-
+    await handle_question(message, state, Form_1.question_7, "Все ли доступы для работы имеются у тебя? ПК, пропуск? Каких не хватает?", 11)
+    
 @after_1_month_router.message(F.text, Form_1.question_7)
 async def question_7(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_8, "Они совпадают с тем, что заявляли на этапе собеседования?", 12)
+    await handle_question(message, state, Form_1.question_8, "Тебе рассказали про твои функциональные обязанности?", 12)
 
 @after_1_month_router.message(F.text, Form_1.question_8)
 async def question_8(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_9, "В каком формате получаешь трудовые задачи?", 13)
+    await handle_question(message, state, Form_1.question_9, "Они совпадают с тем, что заявляли на этапе собеседования?", 13)
 
 @after_1_month_router.message(F.text, Form_1.question_9)
 async def question_9(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_10, "Назначен ли куратор/наставник?", 14)
+    await handle_question(message, state, Form_1.question_10, "В каком формате получаешь трудовые задачи?", 14)
 
 @after_1_month_router.message(F.text, Form_1.question_10)
 async def question_10(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_11, 
-    "Вы уже начали работу с ним? Опишите в пару слов формат работы? Возможно план работы уже у вас составлен.", 15)
+    await handle_question(message, state, Form_1.question_11, "Назначен ли куратор/наставник?", 15)
 
 @after_1_month_router.message(F.text, Form_1.question_11)
 async def question_11(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_12, "Была ли встреча с председателем совета молодежи филиала?", 16)
+    await handle_question(message, state, Form_1.question_12, 
+    "Вы уже начали работу с ним? Опишите в пару слов формат работы? Возможно план работы уже у вас составлен.", 16)
 
 @after_1_month_router.message(F.text, Form_1.question_12)
 async def question_12(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_1.question_13, "Уже принял(а) участие в каких-либо мероприятиях филиала?", 17)
+    await handle_question(message, state, Form_1.question_13, "Была ли встреча с председателем совета молодежи филиала?", 17)
 
 @after_1_month_router.message(F.text, Form_1.question_13)
+async def question_13(message: Message, state: FSMContext):
+    await handle_question(message, state, Form_1.question_14, "Уже принял(а) участие в каких-либо мероприятиях филиала?", 18)
+
+@after_1_month_router.message(F.text, Form_1.question_14)
 async def final_questions(message: Message, state: FSMContext):
-    question_id = 5 if await state.get_state() == Form_1.question_for_all else 18
+    question_id = 5 if await state.get_state() == Form_1.question_for_all else 19
     await handle_question(message, state, Form_1.result, "Есть ли у тебя вопросы?", question_id)
 
 @after_1_month_router.message(F.text, Form_1.result)
 async def result(message: Message, state: FSMContext):
-    await finish_poll(message, state, 18)
+    await finish_poll(message, state, 19)

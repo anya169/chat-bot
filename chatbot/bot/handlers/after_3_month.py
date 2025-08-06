@@ -56,7 +56,7 @@ async def save_answer(employee, message_text, question_id):
         name = message_text,
         submission_date = timedelta(days = days_passed),
         login_id = employee.id,
-        question_id = question_id
+        question_id = question_id + 1
     )
     await sync_to_async(employee_answer.save)()
 
@@ -84,7 +84,7 @@ async def finish_poll(message: Message, state: FSMContext, question_id=None):
         await asyncio.sleep(short_delay)
         await message.answer(
             "Спасибо за предоставленную информацию!\n"
-            "Куратор изучит ответы и, если потребуется, свяжется с тобой!",
+            "Ответы будут внимательно рассмотрены куратором, и при необходимости он обязательно свяжется с тобой дополнительно.",
             reply_markup =question_kb(message.from_user.id)
         )
     await state.clear()
@@ -103,52 +103,52 @@ async def start_poll_after_1_month(message: Message, state: FSMContext):
 
 @after_3_month_router.message(F.text == "Готов(а)", Form_3.how_are_you)
 async def how_are_you(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_1, "Как дела?", 1, ReplyKeyboardRemove())
+    await handle_question(message, state, Form_3.question_1, "Как обстоят дела в производственной среде?", 1, ReplyKeyboardRemove())
 
 @after_3_month_router.message(F.text, Form_3.question_1)
 async def question_1(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_2, "Как часто ты встречаешься со своим руководителем?", 19)
+    await handle_question(message, state, Form_3.question_2, "Как часто ты встречаешься со своим руководителем?", 20)
 
 @after_3_month_router.message(F.text, Form_3.question_2)
 async def question_2(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_3, "Комфортно ли тебе взаимодействовать с руководителем?", 20)
+    await handle_question(message, state, Form_3.question_3, "Комфортно ли тебе взаимодействовать с руководителем?", 21)
 
 @after_3_month_router.message(F.text, Form_3.question_3)
 async def question_3(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_4, "В каком формате ты получаешь задачи?", 21)
+    await handle_question(message, state, Form_3.question_4, "В каком формате ты получаешь задачи?", 22)
 
 @after_3_month_router.message(F.text, Form_3.question_4)
 async def question_4(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_5, "Дают ли тебе обратную связь?", 22)
+    await handle_question(message, state, Form_3.question_5, "Дают ли тебе обратную связь?", 23)
 
 @after_3_month_router.message(F.text, Form_3.question_5)
 async def question_5(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_6, "Как часто ее дает тебе руководитель?\nА наставник?", 23)
+    await handle_question(message, state, Form_3.question_6, "Как часто ее дает тебе руководитель?\nА наставник?", 24)
 
 @after_3_month_router.message(F.text, Form_3.question_6)
 async def question_6(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_7, "Положительная или отрицательная обратная связь?", 24)
+    await handle_question(message, state, Form_3.question_7, "Положительная или отрицательная обратная связь?", 25)
 
 @after_3_month_router.message(F.text, Form_3.question_7)
 async def question_7(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_8, "Всегда ли руководитель и наставник дают тебе обратные ответы на вопросы?", 25)
+    await handle_question(message, state, Form_3.question_8, "Всегда ли руководитель и наставник дают тебе обратные ответы на вопросы?", 26)
 
 @after_3_month_router.message(F.text, Form_3.question_8)
 async def question_8(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_9, "Полезен ли закрепленный за тобой наставник?", 26)
+    await handle_question(message, state, Form_3.question_9, "Полезен ли закрепленный за тобой наставник?", 27)
 
 @after_3_month_router.message(F.text, Form_3.question_9)
 async def question_9(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_10, "Удалось ли принять участие в мероприятиях филиала?", 27)
+    await handle_question(message, state, Form_3.question_10, "Удалось ли принять участие в мероприятиях филиала?", 28)
 
 @after_3_month_router.message(F.text, Form_3.question_10)
 async def question_10(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_11, "Чего тебе не хватает для улучшения реализации трудовой деятельности?", 28)
+    await handle_question(message, state, Form_3.question_11, "Чего тебе не хватает для улучшения реализации трудовой деятельности?", 29)
 
 @after_3_month_router.message(F.text, Form_3.question_11)
 async def question_11(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.result, "Может есть волнующие моменты, которые тебя беспокоят?", 29)
+    await handle_question(message, state, Form_3.result, "Может есть волнующие моменты, которые тебя беспокоят?", 30)
 
 @after_3_month_router.message(F.text, Form_3.result)
 async def result(message: Message, state: FSMContext):
-    await finish_poll(message, state, 30)
+    await finish_poll(message, state, 31)

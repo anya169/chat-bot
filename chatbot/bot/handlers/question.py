@@ -70,7 +70,7 @@ async def capture_question(message: Message, state: FSMContext):
         await asyncio.sleep(short_delay)
         await message.answer(
             "Приветствую тебя, молодой специалист!\n\n"
-            "Возникли вопросы? Оставь их ниже и ожидай ответа.",
+            "Возникли вопросы? Оставь их ниже и ожидай ответа. Если у тебя несколько вопросов, напиши их в одном сообщении.",
             reply_markup=ReplyKeyboardRemove()
         )
     await state.set_state(Form_question.question)
@@ -99,7 +99,7 @@ async def process_question(message: Message, state: FSMContext):
         )
         
         await asyncio.sleep(short_delay)
-        await message.answer("Ваш вопрос сохранен и отправлен куратору! Ожидайте ответа.")
+        await message.answer("Спасибо за вопрос! Скоро вернусь с ответом от куратора.")
         
     except Employee.DoesNotExist:
         await message.answer("Ошибка: ваш профиль сотрудника не найден.")
@@ -119,3 +119,12 @@ async def close_all_websockets():
 # Регистрируем обработчик закрытия
 import atexit
 atexit.register(lambda: asyncio.run(close_all_websockets()))
+
+@question_router.message(F.text == "Вопросов нет")
+async def capture_question(message: Message, state: FSMContext):
+    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+        await asyncio.sleep(short_delay)
+        await message.answer(
+            "Отлично, раз вопросов нет, желаю тебе отличной работы!"
+        )
+    await state.clear()

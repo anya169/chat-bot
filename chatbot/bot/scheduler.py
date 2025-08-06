@@ -8,6 +8,7 @@ from asgiref.sync import sync_to_async
 from handlers.after_1_month import Form_1
 from handlers.after_3_month import Form_3
 from handlers.after_6_month import Form_6
+from handlers.after_12_month import Form_12
 from bot.keyboards import ready_kb
 import logging
 
@@ -118,6 +119,35 @@ async def send_poll_after_6_month(employee_id):
             logger.info(f"Опрос через 6 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
             logger.error(f"Ошибка при отправке опроса через 6 месяцев сотруднику {employee_id}: {e}")
+            
+async def send_poll_after_12_month(employee_id):
+    """Отправляет опрос через 12 месяцев после трудоустройства"""
+    if (not has_completed_poll(employee_id, "Опрос через 12 месяцев")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 12 месяцев отложен")
+                return
+
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_12.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\n\n'
+                           'Поздравляю с первым трудовым годом в нашей замечательной команде! '
+                           'За прошедший год ты стал важной частью коллектива, внес огромный вклад в развитие компании и доказал свою компетентность и профессионализм.\n'
+                           'Ты проделал большую работу и наверняка успел накопить много полезных знаний и опыта. \n'
+                           'Поделись впечатлениями о первом рабочем году, расскажи о достижениях и успехах, которыми гордишься больше всего. А также поделись идеями, как мы можем сделать нашу совместную работу ещё эффективнее и комфортнее.\n'
+                           'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = ready_kb(employee.telegram_id))
+            
+            logger.info(f"Опрос через 12 месяцев отправлен сотруднику {employee_id}")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке опроса через 12 месяцев сотруднику {employee_id}: {e}")            
 
 def schedule_poll(scheduler, employee, days_delta, send_func):
     """Планирует отправку опроса на указанное количество дней после hire_date"""
@@ -180,6 +210,7 @@ async def schedule_polls():
                     schedule_poll(scheduler, employee, 30, send_poll_after_1_month)
                     schedule_poll(scheduler, employee, 90, send_poll_after_3_month)
                     schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
+                    schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
                 
                 # Для работающих 1-3 месяца
                 elif 30 <= days_employed < 90:
@@ -187,16 +218,19 @@ async def schedule_polls():
                         await send_poll_after_1_month(employee.id)
                         schedule_poll(scheduler, employee, 90, send_poll_after_3_month)
                         schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
+                        schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
                 
                 # Для работающих 3-6 месяцев
                 elif 90 <= days_employed < 180:
                     if await is_user_available(employee.telegram_id):
                         await send_poll_after_3_month(employee.id)
                         schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
+                        schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
                 
                 # Для работающих >6 месяцев - не отправляем
                 else:
                     await send_poll_after_6_month(employee.id)
+                    schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
             
             except Exception as e:
                 logger.error(f"Ошибка обработки сотрудника {employee.id}: {e}")
