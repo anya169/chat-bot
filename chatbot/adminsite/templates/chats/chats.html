@@ -7,20 +7,9 @@
    <link rel="stylesheet" href="{% static '/css/common.css' %}">
 </head>
 <body class='layout'>
-   <div class="sidebar">
-      <a href="{% url 'curator_account' %}">
-         <img src="{% static 'images/logo.svg' %}" class="logo-svg" alt="Логотип">
-      </a>
-      <ul>
-         <div class="sidebar__item">ПРОФИЛЬ</div>
-         <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
-         <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
-         <div class="sidebar__item">СОТРУДНИКИ</div>
-         <div class="sidebar__subitem"><a href="/report">Сформировать отчет</a></div>
-         <div class="sidebar__item">СТАТИСТИКА</div>
-         <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
-      </ul>
-   </div>
+   {% block sidebar %}
+      {% include 'includes/sidebar.html' %}
+   {% endblock %}
    <main class="content">
       <h3>Уведомления</h3>
       <div class="employees-panel">
@@ -28,7 +17,10 @@
             {% for employee in employees_with_questions %}
             <a href="{% url 'chat_with_employee' employee.id %}" class="chat">
                <img src="{% static 'images/chat.svg' %}" class="chat-svg">
-               {{ employee.name }}
+               {{ employee.name }}  
+               {% if employee.unanswered_count > 0 %}
+                  <span class="notification">{{ employee.unanswered_count }}</span>
+               {% endif %}
             </a>
             {% empty %}
             <li>Нет активных чатов</li>

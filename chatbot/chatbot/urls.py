@@ -18,6 +18,7 @@ urlpatterns = [
     path('statistic/', statistic, name='statistic'),
     path('employee/<int:employee_id>/', employee, name='employee'),
     path('filter_employees/', filter_employees, name='filter_employees'),
+    path('answer_question/<int:question_id>/', answer_question, name='answer_question'),
 ] 
 
 if settings.DEBUG:

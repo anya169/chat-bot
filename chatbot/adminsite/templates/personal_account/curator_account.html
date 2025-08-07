@@ -7,18 +7,9 @@
    <link rel="stylesheet" href="{% static '/css/common.css' %}">
 </head>
 <body class='layout'>
-   <div class="sidebar">
-      <img src="{% static 'images/logo.svg' %}" class="logo-svg" href="curator_account/">
-      <ul>
-         <div class="sidebar__item">ПРОФИЛЬ</div>
-         <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
-         <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
-         <div class="sidebar__item">СОТРУДНИКИ</div>
-         <div class="sidebar__subitem"><a href="/report">Список сотрудников</a></div>
-         <div class="sidebar__item">СТАТИСТИКА</div>
-         <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
-      </ul>
-   </div>
+   {% block sidebar %}
+      {% include 'includes/sidebar.html' %}
+   {% endblock %}
    <main class="content">
       <h3>Информация обо мне</h3>
       <div class="employees-panel">

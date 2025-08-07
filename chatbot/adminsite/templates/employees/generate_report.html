@@ -8,20 +8,9 @@
    <link rel="stylesheet" href="{% static '/css/air-datepicker.css' %}?v={% now 'U' %}">
 </head>
 <body class='layout' data-username='{{ request.user.username|default:"anonymous"|escapejs }}'>
-   <div class="sidebar">
-      <a href="{% url 'curator_account' %}">
-         <img src="{% static 'images/logo.svg' %}" class="logo-svg" alt="Логотип">
-      </a>
-      <ul>
-         <div class="sidebar__item">ПРОФИЛЬ</div>
-         <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
-         <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
-         <div class="sidebar__item">СОТРУДНИКИ</div>
-         <div class="sidebar__subitem"><a href="/report">Список сотрудников</a></div>
-         <div class="sidebar__item">СТАТИСТИКА</div>
-         <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
-      </ul>
-   </div>
+   {% block sidebar %}
+      {% include 'includes/sidebar.html' %}
+   {% endblock %}
    <main class="content">
       <h3>Молодые сотрудники</h3>
       <div class="employees-panel">

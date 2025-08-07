@@ -8,86 +8,80 @@
    <link rel="stylesheet" href="{% static 'css/common.css' %}">
 </head>
 <body class='layout'>
-   <div class="sidebar">
-      <a href="{% url 'curator_account' %}">
-         <img src="{% static 'images/logo.svg' %}" class="logo-svg" alt="Логотип">
-      </a>
-      <ul>
-         <div class="sidebar__item">ПРОФИЛЬ</div>
-         <div class="sidebar__subitem"><a href="/curator_account">Личный кабинет</a></div>
-         <div class="sidebar__subitem"><a href="/chats">Уведомления</a></div>
-         <div class="sidebar__item">СОТРУДНИКИ</div>
-         <div class="sidebar__subitem"><a href="/young_employees">Список сотрудников</a></div>
-         <div class="sidebar__item">СТАТИСТИКА</div>
-         <div class="sidebar__subitem"><a href="#">Посмотреть статистику</a></div>
-      </ul>
-   </div>
+   {% block sidebar %}
+      {% include 'includes/sidebar.html' %}
+   {% endblock %}
    <main class="content">
-      <h3>Чат с {{ employee.name }}</h3>
+      <h3>Вопросы от сотрудника {{ employee.name }}</h3>
       <div class="employees-panel">  
-         <div class="chat-container">          
-            <div class="chat__messages" id="chat-messages">
-               {% for question_answer in questions_answers %}
-                  <div class="message received">
-                        <p><strong>{{ employee.name }}:</strong> {{ question_answer.name }}</p>
-                        <small>{{ question_answer.creation_question|date:"d.m.Y H:i" }}</small>
-                  </div>
-                  {% if question_answer.answer %}
-                        <div class="message sent">
-                           <p><strong>Вы:</strong> {{ question_answer.answer }}</p>
-                           <small>{{ question_answer.creation_answer|date:"d.m.Y H:i" }}</small>
-                        </div>
-                  {% endif %} 
-               {% endfor %}       
-            </div>
-            
-            <div class="chat__input">
-               <form id="message-form">
-                  <input class="input" type="text" id="message-input" placeholder="Введите сообщение..." required>
-                  <button class="send-button button" type="submit">Отправить</button>
-               </form>
-            </div>
+         <div class="chat-containers"> 
+            {% for question_answer in questions_answers %}
+               <div class="chat-container" id="question-{{ question_answer.id }}">          
+                  <div class="chat__messages">
+                     <div class="message received">
+                           <p><strong>{{ employee.name }}:</strong> {{ question_answer.name }}</p>
+                           <small>{{ question_answer.creation_question|date:"d.m.Y H:i" }}</small>
+                     </div>
+                     {% if question_answer.answer %}
+                           <div class="message sent">
+                              <p><strong>Вы:</strong> {{ question_answer.answer }}</p>
+                              <small>{{ question_answer.creation_answer|date:"d.m.Y H:i" }}</small>
+                           </div>
+                     {% endif %} 
+                     <div class="chat__input {% if question_answer.answer %}hidden{% endif %}" id="input-{{ question_answer.id }}">
+                        <form class="answer-form" method="post" action="{% url 'answer_question' question_answer.id %}">
+                           {% csrf_token %}
+                           <input class="input" type="text" name="answer" placeholder="Введите ответ..." required>
+                           <button class="send-button button" type="submit">Отправить</button>
+                        </form>
+                     </div>
+                  </div> 
+               </div>
+            {% endfor %}     
+            </div>  
          </div>
    </main>
 </body>
 <script>
-   //создаем вебсокет
-   const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${ {{ employee.id }} }/`);
-   //при получении нового сообщения от сервера вызываем функцию
-   chatSocket.onmessage = function(e) {
-      //преобразовываем объект json в строку
-      const data = JSON.parse(e.data);
-      //находим объект с сообщениями
-      const messages = document.getElementById('chat-messages');
-      //получаем имя сотрудника
-      const employeeName = "{{ employee.name }}";
-
-      //создаем объект и присваиваем ему класс в зависимости от того, кому принадлежит сообщение
-      const messageDiv = document.createElement('div');
-      messageDiv.className = data.sender_id === "{{ request.user.username }}" ? "message sent" : "message received";
-      
-      //создаем элемент
-      messageDiv.innerHTML = `
-         <p><strong>${data.sender_id === "{{ request.user.username }}" ? 'Вы:' : employeeName + ':'}</strong> ${data.message}</p>
-         <small>${new Date().toLocaleString()}</small>
-      `;
-      
-      //добавляем в структуру и прокручиваем экран
-      messages.appendChild(messageDiv);
-      messages.scrollTop = messages.scrollHeight;
-   };
-   
-   //при нажатии кнопки 
-   document.getElementById('message-form').onsubmit = function(e) {
-      e.preventDefault();
-      const input = document.getElementById('message-input');
-      //отправляем введенное сообщение и очищаем поле ввода
-      chatSocket.send(JSON.stringify({
-         'message': input.value,
-         'sender_id': "{{ request.user.username }}"
-      }));
-      input.value = '';
-   };
+   document.querySelectorAll('.answer-form').forEach(form => {
+      form.addEventListener('submit', function(e) {
+         e.preventDefault();
+         
+         const formData = new FormData(this);
+         const questionId = this.closest('.chat-container').id.split('-')[1];
+         
+         fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+               'X-Requested-With': 'XMLHttpRequest',
+               'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+         })
+         .then(response => response.json())
+         .then(data => {
+            if (data.success) {
+               //создаем элемент с ответом
+               const answerDiv = document.createElement('div');
+               answerDiv.className = 'message sent';
+               answerDiv.innerHTML = `
+                  <p><strong>Вы:</strong> ${formData.get('answer')}</p>
+                  <small>${new Date().toLocaleString()}</small>
+               `;
+               
+               //вставляем ответ перед полем ввода
+               this.closest('.chat__messages').insertBefore(
+                  answerDiv, 
+                  document.getElementById(`input-${questionId}`)
+               );
+               
+               //скрываем поле ввода, больше куратор ответить не может
+               document.getElementById(`input-${questionId}`).classList.add('hidden');
+            }
+         })
+         .catch(error => console.error('Error:', error));
+      });
+   });
 </script>
 
 </html>

@@ -10,7 +10,8 @@ import json
 from datetime import datetime
 from django.http import HttpResponse
 from django.core.paginator import Paginator
-
+from django.utils import timezone
+from django.db.models import Count, Q, Case, When, IntegerField
 
 #авторизация
 @csrf_exempt
@@ -73,6 +74,7 @@ def young_employee_list(request):
 def chats(request):
    #извлекаем из сессии текущего куратора
    cur_login = request.session.get('user_login')
+   
    #получаем всех его сотрудников
    employees = Employee.objects.filter(curator_login = cur_login)
    #получаем айди всех его сотрудников
@@ -86,10 +88,22 @@ def chats(request):
       .values_list('employee_id', flat=True)  # берём только ID сотрудников
       .distinct()  # убираем дубликаты
    )
-   #получаем сотрудников, у которых есть хотя бы один вопрос
-   employees_with_questions = list(
-      Employee.objects.filter(id__in=employees_ids_with_questions)
+
+   #считаем неотвеченные вопросы
+   unanswered_counts = (
+      Special_Question.objects
+      .filter(employee_id__in=employees_ids, answer__isnull=True)
+      .values('employee_id')
+      .annotate(count=Count('id'))
    )
+   unanswered_dict = {item['employee_id']: item['count'] for item in unanswered_counts}
+
+   #получаем сотрудников с вопросами и добавляем информацию о неотвеченных
+   employees_with_questions = []
+   for employee in Employee.objects.filter(id__in=employees_ids_with_questions):
+      employee.unanswered_count = unanswered_dict.get(employee.id, 0)
+      employees_with_questions.append(employee)
+
    return render(request, 'chats/chats.html', {'employees_with_questions': employees_with_questions})
 
 
@@ -98,13 +112,22 @@ def chat_with_employee(request, employee_id):
    employee = Employee.objects.filter(id=employee_id).first()
    questions_answers = Special_Question.objects.filter(
       employee_id=employee
-   ).order_by('creation_question')
+   ).order_by('-creation_question')
    
    return render(request, 'chats/detailed_chat.html', {
       'employee': employee,
       'questions_answers': questions_answers
    })
-  
+
+def answer_question(request, question_id):
+   if request.method == 'POST':
+      question = Special_Question.objects.get(id=question_id)
+      question.answer = request.POST.get('answer')
+      question.creation_answer = timezone.now()
+      question.save()
+      return JsonResponse({'success': True})
+   return JsonResponse({'success': False}, status=400)
+
 #страница для формирования отчета  
 def report_page(request):
    
@@ -331,3 +354,4 @@ def filter_employees(request):
          return JsonResponse({'Ошибка': str(e)}, status=400)
    
    return JsonResponse({'error': 'Ошибка запроса'}, status=400)   
+

@@ -37,7 +37,7 @@ async def is_user_available(telegram_id):
         return False
 
 async def send_poll_after_1_month(employee_id):
-    if (not has_completed_poll(employee_id, "Опрос через месяц")): #если сотрудник еще не проходил опрос
+    if (not await has_completed_poll(employee_id, "Опрос через месяц")): #если сотрудник еще не проходил опрос
         try:
             employee = await sync_to_async(Employee.objects.get)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
@@ -63,7 +63,7 @@ async def send_poll_after_1_month(employee_id):
 
 async def send_poll_after_3_month(employee_id):
     """Отправляет опрос через 3 месяца после трудоустройства"""
-    if (not has_completed_poll(employee_id, "Опрос через 3 месяца")): #если сотрудник еще не проходил опрос
+    if (not await has_completed_poll(employee_id, "Опрос через 3 месяца")): #если сотрудник еще не проходил опрос
         try:
             employee = await sync_to_async(Employee.objects.get)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
@@ -93,7 +93,7 @@ async def send_poll_after_3_month(employee_id):
 
 async def send_poll_after_6_month(employee_id):
     """Отправляет опрос через 6 месяцев после трудоустройства"""
-    if (not has_completed_poll(employee_id, "Опрос через 6 месяцев")): #если сотрудник еще не проходил опрос
+    if (not await has_completed_poll(employee_id, "Опрос через 6 месяцев")): #если сотрудник еще не проходил опрос
         try:
             employee = await sync_to_async(Employee.objects.get)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
@@ -122,7 +122,7 @@ async def send_poll_after_6_month(employee_id):
             
 async def send_poll_after_12_month(employee_id):
     """Отправляет опрос через 12 месяцев после трудоустройства"""
-    if (not has_completed_poll(employee_id, "Опрос через 12 месяцев")): #если сотрудник еще не проходил опрос
+    if (not await has_completed_poll(employee_id, "Опрос через 12 месяцев")): #если сотрудник еще не проходил опрос
         try:
             employee = await sync_to_async(Employee.objects.get)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
