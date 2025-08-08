@@ -231,7 +231,7 @@ async def capture_welcome_day_information(message: Message, state: FSMContext):
         await asyncio.sleep(long_delay)
         await message.answer('А пока время погрузиться в рабочую среду!\n'
                              'Чтобы первые трудовые дни прошли гладко, предлагаю несколько полезных советов, '
-                             'просто нажми кнопку \"Получить рекомендации\".', reply_markup = recommendations_kb(message.from_user.id))
+                             'просто нажми кнопку \"Получить рекомендации\".', reply_markup = await recommendations_kb(message.from_user.id))
     await state.set_state(Form.recommendations)
 
 @registration_router.message(F.text == "Получить рекомендации", Form.recommendations) # обработка текстового сообщения "Получить рекомендации", с текущим состоянием Form.recommendations
@@ -241,5 +241,5 @@ async def capture_recommendations(message: Message, state: FSMContext):
         await asyncio.sleep(short_delay)
         await message.answer("Если возникнут вопросы, смело обращайся в чат — мы с куратором оперативно предоставим необходимую помощь.\n\n"
                              "Для написания вопроса напиши \"/askquestion\" или нажми на кнопку \"Хочу задать вопрос\".\n\n"
-                             "До встречи!", reply_markup = question_kb(message.from_user.id))
+                             "До встречи!", reply_markup = await question_kb(message.from_user.id))
     await state.clear()

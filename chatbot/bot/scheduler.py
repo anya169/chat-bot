@@ -13,11 +13,14 @@ from bot.keyboards import ready_kb
 import logging
 
 
-async def has_completed_poll(employee_id, poll_name): #проверяем, проходил ли сотрудник этот опрос до этого
-    poll = await sync_to_async(Poll.objects.get)(name=poll_name)
-    return await sync_to_async(
-        Answer.objects.filter(login_id=employee_id, question__poll=poll).exists
-    )()
+async def has_completed_poll(employee_id, poll_name):
+    try:
+        poll = await sync_to_async(Poll.objects.get)(name=poll_name)
+        queryset = Answer.objects.filter(login_id=employee_id, question__poll=poll)
+        exists = await sync_to_async(queryset.exists)()
+        return exists
+    except Poll.DoesNotExist:
+        return False
 
 
 # Настройка логгирования
@@ -85,7 +88,7 @@ async def send_poll_after_3_month(employee_id):
                     'как у тебя идут дела. Поделись своими впечатлениями, пожалуйста, '
                     'ответив на предложенные вопросы.\n\n'
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
-                reply_markup=ready_kb(employee.telegram_id)
+                reply_markup=await ready_kb(employee.telegram_id)
             )
             logger.info(f"Опрос через 3 месяца отправлен сотруднику {employee_id}")
         except Exception as e:
@@ -114,7 +117,7 @@ async def send_poll_after_6_month(employee_id):
                     'За этот год ты, несомненно, приобрел немало знаний и опыта.\n\n'
                     'Поделишься, как продвигается твоя работа? Ответы на наши вопросы помогут нам лучше понять твою ситуацию.\n\n'
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
-                reply_markup=ready_kb(employee.telegram_id)
+                reply_markup=await ready_kb(employee.telegram_id)
             )
             logger.info(f"Опрос через 6 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
@@ -143,7 +146,7 @@ async def send_poll_after_12_month(employee_id):
                            'За прошедший год ты стал важной частью коллектива, внес огромный вклад в развитие компании и доказал свою компетентность и профессионализм.\n'
                            'Ты проделал большую работу и наверняка успел накопить много полезных знаний и опыта. \n'
                            'Поделись впечатлениями о первом рабочем году, расскажи о достижениях и успехах, которыми гордишься больше всего. А также поделись идеями, как мы можем сделать нашу совместную работу ещё эффективнее и комфортнее.\n'
-                           'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = ready_kb(employee.telegram_id))
+                           'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = await ready_kb(employee.telegram_id))
             
             logger.info(f"Опрос через 12 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
@@ -183,11 +186,11 @@ async def schedule_polls():
     """Основная функция планирования опросов"""
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     try:
-        #каждую минуту проверяем статус
+        #каждые 5 минут проверяем статус
         scheduler.add_job(
         log_scheduler_status,
         'interval',
-        minutes=1,
+        minutes=5,
         args=[scheduler],
         id='scheduler',
         replace_existing=True

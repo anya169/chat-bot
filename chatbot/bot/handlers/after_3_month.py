@@ -56,7 +56,7 @@ async def save_answer(employee, message_text, question_id):
         name = message_text,
         submission_date = timedelta(days = days_passed),
         login_id = employee.id,
-        question_id = question_id + 1
+        question_id = question_id - 1
     )
     await sync_to_async(employee_answer.save)()
 
@@ -85,12 +85,12 @@ async def finish_poll(message: Message, state: FSMContext, question_id=None):
         await message.answer(
             "Спасибо за предоставленную информацию!\n"
             "Ответы будут внимательно рассмотрены куратором, и при необходимости он обязательно свяжется с тобой дополнительно.",
-            reply_markup =question_kb(message.from_user.id)
+            reply_markup = await question_kb(message.from_user.id)
         )
     await state.clear()
 
 @after_3_month_router.message(Command('after_3_month'))
-async def start_poll_after_1_month(message: Message, state: FSMContext):
+async def start_poll_after_3_month(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer('Привет!\n\n'
@@ -103,7 +103,13 @@ async def start_poll_after_1_month(message: Message, state: FSMContext):
 
 @after_3_month_router.message(F.text == "Готов(а)", Form_3.how_are_you)
 async def how_are_you(message: Message, state: FSMContext):
-    await handle_question(message, state, Form_3.question_1, "Как обстоят дела в производственной среде?", 1, ReplyKeyboardRemove())
+    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+        await asyncio.sleep(short_delay)
+        await message.answer(
+            "Как обстоят дела в производственной среде?",
+            reply_markup=ReplyKeyboardRemove()
+        )
+    await state.set_state(Form_3.question_1)
 
 @after_3_month_router.message(F.text, Form_3.question_1)
 async def question_1(message: Message, state: FSMContext):
