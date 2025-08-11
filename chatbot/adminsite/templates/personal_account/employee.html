@@ -27,8 +27,8 @@
       <h3>Пройденные опросы</h3>
       <div class="employees-panel">
          <div class="polls-tables">
-            {% for poll in polls %}
-               <h4>{{ poll.name }}</h4>
+            {% for poll_data in polls_data %}
+               <h4>{{ poll_data.poll.name }}</h4>
                <table class="employee-table">
                   <thead>
                      <tr>
@@ -37,10 +37,10 @@
                      </tr>
                   </thead>
                   <tbody>
-                     {% for question, answer in questions_answers %}
+                     {% for questionanswer in poll_data.questions_answers %}
                         <tr>
-                           <td>{{ question.name }}</td>
-                           <td>{{ answer.name }}</td> 
+                           <td>{{ questionanswer.question.name }}</td>
+                           <td>{{ questionanswer.answer.name }}</td> 
                         </tr> 
                      {% endfor %}
                   </tbody>

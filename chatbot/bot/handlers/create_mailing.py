@@ -15,7 +15,9 @@ from keyboards import accept_kb, attachment_kb
 from aiogram.types import FSInputFile 
 from pathlib import Path
 from aiogram.types import InputMediaPhoto, InputMediaDocument
-from core.models import Employee
+from core.models import Employee, Mailing, MailingAttachment
+from django.core.files import File
+from datetime import datetime
 
 sys.path.append('C:/chat-bot/chatbot')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
@@ -205,6 +207,32 @@ async def send_mailing(message: Message, state: FSMContext):
    description = data.get('description', '')
    attachments = data.get('attachments', [])
    
+   #сохраняем рассылку в базу
+   telegram_id = message.from_user.id
+   employee = await sync_to_async(Employee.objects.get)(telegram_id=telegram_id)
+   mailing = Mailing(
+      name=name,
+      employee_id=employee.id,
+      description = description,
+   )
+   await sync_to_async(mailing.save)()
+   
+   #сохраняем вложения
+   for attachment in attachments:
+      file_path = attachment['path']
+      file_name = attachment.get('file_name', Path(file_path).name)
+      file_type = attachment['type']
+      
+      with open(file_path, 'rb') as f:
+         django_file = File(f)
+         mailing_attachment = MailingAttachment(
+            mailing=mailing,
+            file=django_file,
+            file_type=file_type,
+            file_name=file_name
+         )
+         await sync_to_async(mailing_attachment.save)()
+        
    employees = await sync_to_async(list)(
       Employee.objects.exclude(telegram_id__isnull=True).filter(is_curator=False, is_admin=False)
    )

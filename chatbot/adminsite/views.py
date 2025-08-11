@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import os
 from django.http import FileResponse, JsonResponse
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 import json
 from datetime import datetime
@@ -29,10 +30,7 @@ def login_user(request):
             employee = Employee.objects.get(login=username)
             
             # Перенаправляем по ролям
-            if employee.is_admin:
-               request.session['user_login'] = employee.login
-               return redirect('admin_account')
-            elif employee.is_curator:
+            if employee.is_curator:
                request.session['user_login'] = employee.login
                return redirect('curator_account')
             else:
@@ -53,10 +51,7 @@ def login_user(request):
 def login_page(request):
    return render(request, 'personal_account/login.html')
 
-#личный кабинет администратора
-def admin_account(request):
-   return render(request, 'personal_account/admin_account.html')
-
+@login_required
 #личный кабинет куратора
 def curator_account(request):
    cur_login = request.session.get('user_login')
@@ -64,12 +59,7 @@ def curator_account(request):
    count = Employee.objects.filter(curator_login = cur_login).count()
    return render(request, 'personal_account/curator_account.html', {'employee': employee, 'count': count})
 
-#получение списка молодых сотрудников 
-def young_employee_list(request):
-   cur_login = request.session.get('user_login')
-   employees = Employee.objects.filter(is_curator=False, is_admin=False, curator_login = cur_login)
-   return render(request, 'employees/list.html', {'employees': employees})
-
+@login_required
 #чаты куратора
 def chats(request):
    #извлекаем из сессии текущего куратора
@@ -106,7 +96,7 @@ def chats(request):
 
    return render(request, 'chats/chats.html', {'employees_with_questions': employees_with_questions})
 
-
+@login_required
 #чат с сотрудником
 def chat_with_employee(request, employee_id):
    employee = Employee.objects.filter(id=employee_id).first()
@@ -128,9 +118,9 @@ def answer_question(request, question_id):
       return JsonResponse({'success': True})
    return JsonResponse({'success': False}, status=400)
 
+@login_required
 #страница для формирования отчета  
-def report_page(request):
-   
+def report_page(request): 
    #передаем всех сотрудников
    employees = Employee.objects.filter(is_curator = False).order_by('-hire_date')  
    filials = Filial.objects.all()
@@ -168,7 +158,7 @@ def report_page(request):
                   'page_range': paginator.get_elided_page_range(page_obj.number)
                })
 
-
+@login_required
 def download_report(request):
    try:
       #генерируем отчет 
@@ -191,27 +181,37 @@ def download_report(request):
       
    except Exception as e:
       return HttpResponse(f"Ошибка: {str(e)}", status=500)
-      
+
+@login_required      
 #информация о сотруднике
 def employee(request, employee_id):
    employee = Employee.objects.filter(id=employee_id).first()
    #все его пройденные опросы
    polls = Poll.objects.filter(question__answer__login = employee.id).distinct()
-   questions_answers = []
+  
+   polls_data = []
    for poll in polls:
+      questions_answers = []
       poll_questions = Question.objects.filter(poll_id=poll.id)
       for poll_question in poll_questions:
          poll_answer = Answer.objects.filter(question_id=poll_question.id, login=employee).first()
          #cохраняем пару (вопрос, ответ)
-         questions_answers.append((poll_question, poll_answer))
+         questions_answers.append({
+            'question': poll_question,
+            'answer': poll_answer
+         })
+      polls_data.append({
+         'poll': poll,
+         'questions_answers': questions_answers
+      })
    count = polls.count()
    return render(request, 'personal_account/employee.html', {
       'employee': employee,
-      'polls': polls,
-      'questions_answers': questions_answers,
+      'polls_data': polls_data,
       'count': count
    })   
-   
+
+@login_required   
 #статистика
 def statistic(request):
    employees = Employee.objects.filter(is_curator=False)

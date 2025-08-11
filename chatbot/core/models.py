@@ -131,3 +131,36 @@ class Special_Question(models.Model):
       db_table = 'Special_Question'
       verbose_name = 'Специальный вопрос'
       verbose_name_plural = 'Специальные вопросы'
+
+class Mailing(models.Model):
+   objects = models.Manager()
+   
+   name = models.CharField(null=True, blank=True, verbose_name='Название рассылки')
+   description = models.CharField(null=True, blank=True, verbose_name='Описание рассылки')
+   creation_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания рассылки')
+   employee = models.ForeignKey('Employee', null=True, blank=True, related_name='curator', on_delete=models.DO_NOTHING, verbose_name='ID')
+   
+   def __str__(self):
+      return self.name
+   
+   class Meta:
+      db_table = 'Mailing'
+      verbose_name = 'Рассылка'
+      verbose_name_plural = 'Рассылки'
+      
+class MailingAttachment(models.Model):
+   objects = models.Manager()
+   
+   mailing = models.ForeignKey(Mailing, related_name='attachments', on_delete=models.CASCADE, verbose_name='Рассылка')
+   file = models.FileField(upload_to='mailings/', verbose_name='Файл вложения')
+   file_type = models.CharField(choices=[('photo', 'Фото'), ('document', 'Документ')], verbose_name='Тип файла')
+   file_name = models.CharField(null=True, blank=True,verbose_name='Имя файла')
+   created_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+   
+   def __str__(self):
+      return self.name
+   
+   class Meta:
+      db_table = 'MailingAttachment'
+      verbose_name = 'Вложение'
+      verbose_name_plural = 'Вложения'
