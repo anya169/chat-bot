@@ -58,7 +58,7 @@ async def send_poll_after_1_month(employee_id):
                 text='Привет!\nПоздравляем с первым месяцем в команде!\n\n'
                     'Чтобы оценить, как идут дела, предлагаем пройти опрос по чек-листу.\n\n'
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
-                reply_markup=ready_kb(employee.telegram_id)
+                reply_markup=await ready_kb(employee.telegram_id)
             )
             logger.info(f"Опрос через 1 месяц отправлен сотруднику {employee_id}")
         except Exception as e:
