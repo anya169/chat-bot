@@ -146,6 +146,10 @@ a:hover {
    justify-content: center;
 }
 
+.poll-table td {
+   width: 50%;
+}
+
 .employee-table tr:nth-child(odd) {
    background-color: rgba(0, 120, 193, 0.25);
    color: #FFFFFF;

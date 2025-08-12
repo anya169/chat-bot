@@ -96,7 +96,7 @@ async def capture_service_number(message: Message, state: FSMContext):
         data = await state.get_data()
         msg_text = (f'{data.get("name")}, укажи свой табельный номер:')
         await asyncio.sleep(short_delay)
-        await message.answer(msg_text, reply_markup = service_number_kb(message.from_user.id))
+        await message.answer(msg_text, reply_markup = await service_number_kb(message.from_user.id))
     await state.set_state(Form.branch)
 
 @registration_router.message(F.text, Form.branch) # обработка текстового сообщения (F.text), с текущим состоянием Form.branch
@@ -191,7 +191,7 @@ async def capture_curator_information(message: Message, state: FSMContext):
         await message.answer("Кто такой куратор? Смотри видеоролик ниже!\n\n"
                              "После ознакомления нажимай кнопку «Ознакомился(ась)».")
         video_file = FSInputFile(path = os.path.join(media_dir, 'test_video.mp4'))
-        await message.answer_video(video = video_file, reply_markup = reviewed_kb(message.from_user.id))
+        await message.answer_video(video = video_file, reply_markup = await reviewed_kb(message.from_user.id))
     await state.set_state(Form.do_task)
 
 @registration_router.message(F.text == 'Ознакомился(ась)', Form.do_task) # обработка текстового сообщения "Ознакомился(ась)", с текущим состоянием Form.do_task
@@ -202,7 +202,7 @@ async def capture_do_task(message: Message, state: FSMContext):
         await asyncio.sleep(short_delay)
         await message.answer(f'{data.get("name")}, отлично! Теперь мы знаем друг о друге лучше!\n\n'
                              'Лично с куратором ты познакомишься чуть позже, а пока прошу выполнить первое задание! '
-                             'Для этого нажми на кнопку \"Задание\".', reply_markup = task_kb(message.from_user.id))
+                             'Для этого нажми на кнопку \"Задание\".', reply_markup = await task_kb(message.from_user.id))
     await state.set_state(Form.task)
 
 @registration_router.message(F.text == "Задание", Form.task) # обработка текстового сообщения "Задание", с текущим состоянием Form.task
@@ -214,7 +214,7 @@ async def capture_task(message: Message, state: FSMContext):
                              "все молодые специалисты обязаны компании проходят психологическое тестирование.\n\n"
                              "Для прохождения теста перейди по следующей ссылке: <a href='https://forms.yandex.ru/cloud/665e7565d046880010428699/'>психологический тест</a>.\n\n"
                              "После завершения тестирования вернись в диалог и подтверди выполнение, нажав кнопку \"Я заполнил(а)\".", 
-                             reply_markup = done_kb(message.from_user.id), parse_mode = "HTML")
+                             reply_markup = await done_kb(message.from_user.id), parse_mode = "HTML")
     await state.set_state(Form.welcome_day_information)
 
 @registration_router.message(F.text == "Я заполнил(а)", Form.welcome_day_information) # обработка текстового сообщения "Я заполнил(а)", с текущим состоянием Form.welcome_day_information

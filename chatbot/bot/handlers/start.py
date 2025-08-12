@@ -20,4 +20,4 @@ async def cmd_start(message: Message):
     else:
         await message.answer('Мы тебя очень ждали и хотим познакомиться! Расскажи о себе, отвечая на вопросы'
                             ', для этого нажми на кнопку \"Рассказать о себе\".',
-                            reply_markup = tell_about_myself_kb(message.from_user.id))
+                            reply_markup = await tell_about_myself_kb(message.from_user.id))
