@@ -2,13 +2,13 @@ import asyncio
 from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
-from create_bot import bot, dp
+from bot.create_bot import bot, dp 
 from core.models import *
 from asgiref.sync import sync_to_async
-from handlers.after_1_month import Form_1
-from handlers.after_3_month import Form_3
-from handlers.after_6_month import Form_6
-from handlers.after_12_month import Form_12
+from bot.handlers.after_1_month import Form_1
+from bot.handlers.after_3_month import Form_3
+from bot.handlers.after_6_month import Form_6
+from bot.handlers.after_12_month import Form_12
 from bot.keyboards import ready_kb
 import logging
 

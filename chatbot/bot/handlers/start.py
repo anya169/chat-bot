@@ -2,12 +2,13 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from keyboards import tell_about_myself_kb # клавиатура
-from core.models import *
+
 from asgiref.sync import sync_to_async
 
 start_router = Router()
 
 async def has_completed_registration(telegram_id): #проверяем, проходил ли сотрудник регистрацию
+    from core.models import Employee
     exists = await sync_to_async(Employee.objects.filter(telegram_id=telegram_id).exists)()
     return exists
     

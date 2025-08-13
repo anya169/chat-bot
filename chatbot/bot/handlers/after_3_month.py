@@ -1,5 +1,5 @@
 import asyncio
-from create_bot import bot
+from bot.create_bot import bot
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -7,15 +7,12 @@ from aiogram.filters.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.chat_action import ChatActionSender
 from datetime import date, timedelta
-from keyboards import ready_kb, question_kb # клавиатуры
+from bot.keyboards import ready_kb, question_kb # клавиатуры
 import os
 import django
 import sys
 from asgiref.sync import sync_to_async
 
-sys.path.append('C:/chat-bot/chatbot')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
-django.setup()
 from core.models import Employee, Answer
 
 # время, через которое бот отправит сообщение

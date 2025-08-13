@@ -1,7 +1,12 @@
 import asyncio
 import os
 import django
-from create_bot import bot, dp
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
+django.setup()
+
 from handlers.start import start_router
 from handlers.question import question_router
 from handlers.registration import registration_router
@@ -16,9 +21,7 @@ from bot.utils import get_bot
 from scheduler import schedule_polls
 from handlers.default_kb import set_default_command
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chatbot.settings")
-django.setup() 
-
+from create_bot import bot, dp
 
 
 async def main():

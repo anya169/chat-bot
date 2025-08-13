@@ -1,5 +1,5 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
-from create_bot import get_curators_telegram_ids
+from bot.create_bot import get_curators_telegram_ids
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import os
 import django
@@ -7,9 +7,7 @@ import sys
 from asgiref.sync import sync_to_async
 import asyncio
 
-sys.path.append(r'C:\Users\oxina\OneDrive\Рабочий стол\работа\chat-bot\chatbot')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
-django.setup()
+
 
 async def is_curator():
     curators = await get_curators_telegram_ids()
