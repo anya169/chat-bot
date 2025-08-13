@@ -161,15 +161,14 @@ async def capture_curator_information(message: Message, state: FSMContext):
     data = await state.get_data()
     try:
         filial, _ = await sync_to_async(Filial.objects.get_or_create)(name=data.get('branch'))
-        employee = Employee(
-            num_tab = data.get('service_number', 'Не указан'),
-            name = f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
+        employee = await sync_to_async(Employee.objects.create)(
+            num_tab=data.get('service_number', 'Не указан'),
+            name=f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
             filial=filial,
-            hire_date = hire_date,
-            telegram_id = message.from_user.id,
-            telegram_registration_date = datetime.now().date()
+            hire_date=hire_date,
+            telegram_id=message.from_user.id,
+            telegram_registration_date=datetime.now().date()
         )
-        await sync_to_async(employee.save)()
         await asyncio.sleep(short_delay)
     except Exception as e:
         print(f"Ошибка при сохранении данных: {e}")
