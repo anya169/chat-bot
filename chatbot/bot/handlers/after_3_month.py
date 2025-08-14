@@ -1,5 +1,5 @@
 import asyncio
-from bot.create_bot import bot
+from create_bot import bot
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -95,7 +95,7 @@ async def start_poll_after_3_month(message: Message, state: FSMContext):
                              'Твой адаптационный период подходит к концу, и мне важно узнать, '
                              'как у тебя идут дела. Поделись своими впечатлениями, пожалуйста, '
                              'ответив на предложенные вопросы.\n\n'
-                             'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = ready_kb(message.from_user.id))
+                             'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = await ready_kb(message.from_user.id))
     await state.set_state(Form_3.how_are_you)
 
 @after_3_month_router.message(F.text == "Готов(а)", Form_3.how_are_you)

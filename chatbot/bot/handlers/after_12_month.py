@@ -1,5 +1,5 @@
 import asyncio
-from bot.create_bot import bot
+from create_bot import bot
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -80,7 +80,7 @@ async def finish_poll(message: Message, state: FSMContext, question_id = None):
          "тестирование для самоанализа личного профиля.\n\n"
          "Для прохождения теста перейди по следующей ссылке: https://forms.yandex.ru/cloud/665e766290fa7b1d6999c9a8/\n\n"
          "После завершения тестирования вернись в диалог и подтверди выполнение, нажав кнопку «Я заполнил(а)».\n\n",
-         reply_markup = done_kb(message.from_user.id)
+         reply_markup = await done_kb(message.from_user.id)
       )
    await end(message, state)
 
@@ -103,7 +103,7 @@ async def start_poll_after_1_month(message: Message, state: FSMContext):
                            'За прошедший год ты стал важной частью коллектива, внес огромный вклад в развитие компании и доказал свою компетентность и профессионализм.\n'
                            'Ты проделал большую работу и наверняка успел накопить много полезных знаний и опыта. \n'
                            'Поделись впечатлениями о первом рабочем году, расскажи о достижениях и успехах, которыми гордишься больше всего. А также поделись идеями, как мы можем сделать нашу совместную работу ещё эффективнее и комфортнее.\n'
-                           'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = ready_kb(message.from_user.id))
+                           'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = await ready_kb(message.from_user.id))
    await state.set_state(Form_12.how_are_you)
 
 @after_12_month_router.message(F.text == "Готов(а)", Form_12.how_are_you)
@@ -122,7 +122,7 @@ async def question_1(message: Message, state: FSMContext):
 
 @after_12_month_router.message(F.text, Form_12.question_2)
 async def question_2(message: Message, state: FSMContext):
-   await handle_question(message, state, Form_12.question_3, "o	Есть ли ощущение комфорта и уверенности в рабочих процессах на сегодняшний день?", 40)
+   await handle_question(message, state, Form_12.question_3, "Есть ли ощущение комфорта и уверенности в рабочих процессах на сегодняшний день?", 40)
 
 @after_12_month_router.message(F.text, Form_12.question_3)
 async def question_3(message: Message, state: FSMContext):

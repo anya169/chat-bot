@@ -1,5 +1,5 @@
 import asyncio
-from bot.create_bot import bot
+from create_bot import bot
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext

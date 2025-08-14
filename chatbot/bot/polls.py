@@ -10,7 +10,7 @@ django.setup()
 
 from core.models import Poll, Question
 
-async def initialize_poll_data(poll_name):
+async def initialize_poll_data():
     # poll = await sync_to_async(Poll.objects.get)(name=poll_name)
     # questions = await sync_to_async(list)(Question.objects.filter(poll=poll))
     # return [q.name for q in questions]
@@ -28,7 +28,7 @@ async def initialize_poll_data(poll_name):
     )
     poll_after_12_month = Poll(
         name = "Опрос через 12 месяцев",
-        submission_date = timedelta(days = 180)
+        submission_date = timedelta(days = 365)
     )
     await sync_to_async(poll_after_1_month.save)()
     await sync_to_async(poll_after_3_month.save)()

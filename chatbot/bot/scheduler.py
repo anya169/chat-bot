@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
-from bot.create_bot import bot, dp 
+from create_bot import bot, dp 
 from core.models import *
 from asgiref.sync import sync_to_async
 from bot.handlers.after_1_month import Form_1
@@ -60,6 +60,7 @@ async def send_poll_after_1_month(employee_id):
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
                 reply_markup=await ready_kb(employee.telegram_id)
             )
+            logger.info(f"Установлено состояние: {await state.get_state()}")
             logger.info(f"Опрос через 1 месяц отправлен сотруднику {employee_id}")
         except Exception as e:
             logger.error(f"Ошибка при отправке опроса через 1 месяц сотруднику {employee_id}: {e}")
@@ -177,7 +178,7 @@ def schedule_poll(scheduler, employee, days_delta, send_func):
 
 
 async def log_scheduler_status(scheduler: AsyncIOScheduler):
-    """Логирует статус планировщика каждую минуту"""
+    """Логирует статус планировщика каждые 5 минут"""
     logger.info(
         f"Scheduler: запущен"
     )

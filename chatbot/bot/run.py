@@ -17,7 +17,6 @@ from create_bot import bot, dp
 
 
 async def main():
-    bot = get_bot()
     #await initialize_poll_data() # использовать функцию только при первом запуске, потом нужно закомментировать
     #await initialize_filials_data() # использовать функцию только при первом запуске, потом нужно закомментировать
     dp.include_router(start_router)
