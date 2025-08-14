@@ -11,7 +11,6 @@ from create_bot import media_dir # медиа
 from aiogram.types import CallbackQuery
 import re
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import os
 import django
 import sys

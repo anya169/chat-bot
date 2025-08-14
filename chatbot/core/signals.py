@@ -6,35 +6,17 @@ from aiogram import Bot
 from core.models import Employee, Special_Question
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
 logger = logging.getLogger(__name__)
 
-_bot_instance = None
-
+bot = None
 def get_bot():
-    global _bot_instance
-    if _bot_instance is None:
-        _bot_instance = Bot('7741930969:AAFFBhqYEqetYvSKCHtKSQ5yhP1mUNNHwo8')
-    return _bot_instance
-
-async def close_bot():
-    global _bot_instance
-    if _bot_instance:
-        await _bot_instance.close()
-        _bot_instance = None
-
-_scheduler_instance = None
-
-def get_scheduler():
-    global _scheduler_instance
-    if _scheduler_instance is None:
-        _scheduler_instance = AsyncIOScheduler(timezone='Europe/Moscow')
-        _scheduler_instance.start()
-    return _scheduler_instance
+    bot =  Bot(token=config('TOKEN'))
+    return bot
 
 @receiver(post_save, sender=Special_Question)
 def send_answer_to_user(sender, instance, created, **kwargs):
     if not created and instance.answer and hasattr(instance, 'employee'):
+        print(f"New special q")
         employee = instance.employee
         if employee and employee.telegram_id:
             message = (
@@ -51,13 +33,12 @@ async def async_send_message(chat_id, text):
     except Exception as e:
         logger.error(f"Error sending Telegram message: {e}")
         raise
-    finally:
-        await close_bot()
+
         
 @receiver(post_save, sender=Employee)
 def handle_new_employee(sender, instance, created, **kwargs):
-    if created and instance.hire_date:
-        logger.info(f"New employee signal received for {instance.id}")
+    if created:
+        print(f"New employee signal received for {instance.id}")
         try:
             # Запускаем асинхронную задачу для планирования опросов
             async_to_sync(schedule_employee_polls)(instance)

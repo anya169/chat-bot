@@ -1,6 +1,4 @@
 import asyncio
-import websockets
-import json
 from create_bot import bot
 from aiogram.filters import Command
 from aiogram import Router, F

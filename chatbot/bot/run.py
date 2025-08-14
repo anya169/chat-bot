@@ -1,12 +1,4 @@
 import asyncio
-import os
-import django
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
-django.setup()
-
 from handlers.start import start_router
 from handlers.question import question_router
 from handlers.registration import registration_router

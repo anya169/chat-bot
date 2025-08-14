@@ -164,3 +164,5 @@ class MailingAttachment(models.Model):
       db_table = 'MailingAttachment'
       verbose_name = 'Вложение'
       verbose_name_plural = 'Вложения'
+      
+            

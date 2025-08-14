@@ -37,7 +37,7 @@ async def initialize_poll_data(poll_name):
     poll_after_1_month = await sync_to_async(Poll.objects.get)(name = "Опрос через месяц")
     poll_after_3_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 3 месяца")
     poll_after_6_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 6 месяцев")
-    poll_after_6_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 12 месяцев")
+    poll_after_12_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 12 месяцев")
     questions_for_poll_1_data = [
         "Как дела?", 
         "Удалось пройти трек по адаптации в ГИД?",
