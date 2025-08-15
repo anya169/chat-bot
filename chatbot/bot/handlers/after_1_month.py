@@ -1,5 +1,5 @@
 import asyncio
-from create_bot import bot
+from bot.create_bot import bot, dp
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -8,11 +8,9 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.chat_action import ChatActionSender
 from datetime import date, timedelta
 from bot.keyboards import ready_kb, yes_or_no_kb, question_kb, yes_or_no_maybe_kb # клавиатуры
-import os
-import django
-import sys
-from asgiref.sync import sync_to_async
 
+from asgiref.sync import sync_to_async
+from aiogram.types import Message
 from core.models import Employee, Answer, Poll
 
 # время, через которое бот отправит сообщение
@@ -96,6 +94,26 @@ async def finish_poll(message: Message, state: FSMContext, question_id=None):
             reply_markup = await question_kb(message.from_user.id)
         )
     await state.clear()
+
+
+async def start_poll_after_1_month_by_admin(telegram_id: int):   
+    state = dp.fsm.get_context(
+        bot=bot,
+        chat_id=telegram_id,
+        user_id=telegram_id
+    )
+    
+    await state.set_state(Form_1.how_are_you)
+    
+    # Отправляем сообщение
+    await bot.send_message(
+        chat_id=telegram_id,
+        text='Привет!\n\n'
+            'Поздравляю тебя с успешным стартом в нашей команде — прошёл уже целый месяц! \n'
+            'Для того, чтобы мы могли вместе увидеть, насколько успешно идёт процесс адаптации и интеграции, предлагаю заполнить небольшой опрос по чек-листу обратной связи.\n'
+            'Нажми кнопку «Готов(а)!», и мы начнем наш диалог!',
+        reply_markup=await ready_kb(telegram_id)
+    )
 
 @after_1_month_router.message(Command('after_1_month'))
 async def start_poll_after_1_month(message: Message, state: FSMContext):

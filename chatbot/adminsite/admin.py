@@ -1,6 +1,7 @@
 from django.contrib import admin
 from core.models import *
 from django.utils.html import format_html
+from bot.create_bot import bot, dp
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
@@ -8,6 +9,49 @@ class EmployeeAdmin(admin.ModelAdmin):
    list_filter = ('is_curator', 'hire_date', 'telegram_registration_date', 'curator_login')
    search_fields = ('name', 'login', 'telegram_id')
    ordering = ('name', 'filial')
+   actions = ['send_1_month_poll']
+
+   @admin.action(description="Отправить опрос через 1 месяц выбранным сотрудникам")
+   def send_1_month_poll(self, request, queryset):
+      from django.contrib import messages
+      import asyncio
+      loop = asyncio.new_event_loop()
+      asyncio.set_event_loop(loop)
+      async def send_poll(employee):
+         try:
+               from bot.handlers.after_1_month import start_poll_after_1_month_by_admin
+               await start_poll_after_1_month_by_admin(employee.telegram_id)
+         except Exception as e:
+               print(f"Ошибка для {employee.telegram_id}: {str(e)}")
+               return False
+
+      # Основная обработка
+      success = 0
+      errors = 0
+
+      for employee in queryset:
+         if not employee.telegram_id:
+               messages.warning(request, f"Нет telegram_id у {employee.name}")
+               errors += 1
+               continue
+
+         try:
+        
+            result = loop.run_until_complete(send_poll(employee))
+
+            if result:
+               messages.success(request, f"Успешно: {employee.name}")
+               success += 1
+            else:
+               messages.error(request, f"Ошибка: {employee.name}")
+               errors += 1
+         except Exception as e:
+               messages.error(request, f"Критическая ошибка: {str(e)}")
+               errors += 1
+         finally:
+            loop.close()
+
+
    
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):   

@@ -12,8 +12,6 @@ class Employee(models.Model):
    login = models.CharField(max_length=200, null=True, blank=True, verbose_name='Логин')
    is_del = models.BooleanField(default=False, verbose_name='Уволен')
    is_admin = models.BooleanField(default=False, verbose_name='Администратор')
-   is_can_manage_global_groups = models.BooleanField(default=False, verbose_name='Может управлять глобальными группами')
-   is_can_view_all_forms = models.BooleanField(default=False, verbose_name='Может просматривать все формы')
    is_curator = models.BooleanField(default=False, verbose_name='Является ли куратором')
    telegram_id = models.IntegerField(null=True, blank=True, verbose_name="Telegram ID")
    hire_date = models.DateField(null=True, blank=True, verbose_name="Дата приёма на работу")
@@ -31,9 +29,7 @@ class Employee(models.Model):
 
 class Struct(models.Model):
    objects = models.Manager()
-   
    name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Название подразделения")
-  
    def __str__(self):
       return self.name
   

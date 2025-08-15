@@ -60,7 +60,8 @@ def generate_report(cur_curator_login, ids):
             for question in questions:
                #находим ответ на вопрос
                answer = Answer.objects.filter(question_id = question.id, login_id = current_employee.id).first()   
-               ws.cell(row=current_row, column=cur_column, value=answer.name)
+               answer_text = answer.name if answer else "-"
+               ws.cell(row=current_row, column=cur_column, value=answer_text)
                cur_column += 1
             current_row += 1 
          current_row += 2 
