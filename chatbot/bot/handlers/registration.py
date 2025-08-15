@@ -133,7 +133,7 @@ async def capture_branch(message: Message, state: FSMContext):
 # параметры: объект CallbackQuery с информацией о callback-запросе, state - контекст состояния
 async def capture_hire_date(callback: CallbackQuery, state: FSMContext):
     branch = callback.data.replace("branch_", "") # извлечение названия филиала из callback.data, удаляя префикс "branch_"
-    await state.update_data(branch = branch)
+    await state.update_data(branch_id = branch)
     # await callback.message.answer(text = f"Выбран филиал: {branch}", reply_markup = ReplyKeyboardRemove())
     data = await state.get_data()
     msg_text = f'{data.get("name")}, укажи дату приёма в компанию в формате DD.MM.YYYY (например, 01.01.2025):'
@@ -159,7 +159,8 @@ async def capture_curator_information(message: Message, state: FSMContext):
     await state.update_data(hire_date = message.text)
     data = await state.get_data()
     try:
-        filial, _ = await sync_to_async(Filial.objects.get)(name=data.get('branch'))
+        branch_id = data.get('branch_id')
+        filial = await sync_to_async(Filial.objects.get)(id=branch_id)
         employee = await sync_to_async(Employee.objects.create)(
             num_tab=data.get('service_number', 'Не указан'),
             name=f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
