@@ -69,13 +69,10 @@ async def branches_kb() -> InlineKeyboardMarkup:
 #     return InlineKeyboardMarkup(inline_keyboard = [[button] for button in buttons])
 
 # клавиатура с кнопкой "Рассказать о себе"
-async def tell_about_myself_kb(user_telegram_id: int):
+def tell_about_myself_kb():
     kb_list = [
         [KeyboardButton(text = "Рассказать о себе")]
     ]
-    curators = await is_curator()  # Получаем список кураторов
-    if user_telegram_id in curators:
-        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -84,13 +81,10 @@ async def tell_about_myself_kb(user_telegram_id: int):
     return keyboard
 
 # клавиатура с кнопкой "Я не знаю свой табельный номер"
-async def service_number_kb(user_telegram_id: int):
+def service_number_kb():
     kb_list = [
         [KeyboardButton(text = "Я не знаю свой табельный номер")]
     ]
-    curators = await is_curator()  # Получаем список кураторов
-    if user_telegram_id in curators:
-        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
@@ -99,13 +93,10 @@ async def service_number_kb(user_telegram_id: int):
     return keyboard
 
 # клавиатура с кнопкой "Ознакомился(ась)"
-async def reviewed_kb(user_telegram_id: int):
+def reviewed_kb():
     kb_list = [
         [KeyboardButton(text = "Ознакомился(ась)")]
     ]
-    curators = await is_curator()  # Получаем список кураторов
-    if user_telegram_id in curators:
-        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран
