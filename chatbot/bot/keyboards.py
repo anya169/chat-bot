@@ -93,10 +93,13 @@ def service_number_kb():
     return keyboard
 
 # клавиатура с кнопкой "Ознакомился(ась)"
-def reviewed_kb():
+async def reviewed_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text = "Ознакомился(ась)")]
     ]
+    curators = await is_curator()  # Получаем список кураторов
+    if user_telegram_id in curators:
+        kb_list.append([KeyboardButton(text = "Создать рассылку")]) # кнопка, которая видна только админу
     keyboard = ReplyKeyboardMarkup(
         keyboard = kb_list,
         resize_keyboard = True, # автоматически подгоняет размер кнопок под экран

@@ -190,7 +190,7 @@ async def capture_curator_information(message: Message, state: FSMContext):
         await message.answer("Кто такой куратор? Смотри видеоролик ниже!\n\n"
                              "После ознакомления нажимай кнопку «Ознакомился(ась)».")
         video_file = FSInputFile(path = os.path.join(media_dir, 'test_video.mp4'))
-        await message.answer_video(video = video_file, reply_markup = reviewed_kb())
+        await message.answer_video(video = video_file, reply_markup = await reviewed_kb(message.from_user.id))
     await state.set_state(Form.do_task)
 
 @registration_router.message(F.text == 'Ознакомился(ась)', Form.do_task) # обработка текстового сообщения "Ознакомился(ась)", с текущим состоянием Form.do_task
@@ -201,7 +201,7 @@ async def capture_do_task(message: Message, state: FSMContext):
         await asyncio.sleep(short_delay)
         await message.answer(f'{data.get("name")}, отлично! Теперь мы знаем друг о друге лучше!\n\n'
                              'Лично с куратором ты познакомишься чуть позже, а пока прошу выполнить первое задание! '
-                             'Для этого нажми на кнопку \"Задание\".', reply_markup = task_kb())
+                             'Для этого нажми на кнопку \"Задание\".', reply_markup = await task_kb(message.from_user.id))
     await state.set_state(Form.task)
 
 @registration_router.message(F.text == "Задание", Form.task) # обработка текстового сообщения "Задание", с текущим состоянием Form.task
