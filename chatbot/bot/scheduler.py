@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
+import sys
 from create_bot import bot, dp 
 from core.models import *
 from asgiref.sync import sync_to_async
@@ -62,6 +63,8 @@ async def send_poll_after_1_month(employee_id):
             )
             logger.info(f"Установлено состояние: {await state.get_state()}")
             logger.info(f"Опрос через 1 месяц отправлен сотруднику {employee_id}")
+            current_state = await state.get_state()
+            logger.info(f"Текущее состояние после установки: {current_state}")
         except Exception as e:
             logger.error(f"Ошибка при отправке опроса через 1 месяц сотруднику {employee_id}: {e}")
 
@@ -231,10 +234,16 @@ async def schedule_polls():
                         schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
                         schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
                 
-                # Для работающих >6 месяцев - не отправляем
+                # Для работающих 6-12 месяцев 
+                elif 180 <= days_employed < 365:
+                    if await is_user_available(employee.telegram_id):
+                        await send_poll_after_6_month(employee.id)
+                        schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                        
+                # Для работающих больше года       
                 else:
-                    await send_poll_after_6_month(employee.id)
-                    schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                    if await is_user_available(employee.telegram_id):
+                        await send_poll_after_12_month(employee.id)
             
             except Exception as e:
                 logger.error(f"Ошибка обработки сотрудника {employee.id}: {e}")

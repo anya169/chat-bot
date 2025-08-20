@@ -147,12 +147,15 @@ def report_page(request):
    paginator = Paginator(data, 50)  #по 50 строк на странице
    page_number = request.GET.get('page', 1)
    page_obj = paginator.get_page(page_number)
+   #получаем все существующие рассылки
+   mailings = Mailing.objects.all()
    return render(request, 'employees/generate_report.html', 
                  {'employees': page_obj.object_list, 
                   'filials': filials, 
                   'structs': structs, 
                   'numtabs': numtabs,
                   'curators': curators, 
+                  'mailings': mailings,
                   'current_user': request.user.username,
                   'page_obj': page_obj,
                   'page_range': paginator.get_elided_page_range(page_obj.number)
@@ -355,3 +358,51 @@ def filter_employees(request):
    
    return JsonResponse({'error': 'Ошибка запроса'}, status=400)   
 
+@login_required
+#рассылки
+def mailings(request):
+   #получаем все существующие рассылки
+   mailings = Mailing.objects.all()
+
+   return render(request, 'employees/mailings.html', {'mailings': mailings})
+
+@login_required      
+#информация о рассылке
+def mailing(request, mailing_id):
+   mailing = Mailing.objects.filter(id=mailing_id).first()
+   #вложения рассылки
+   attachments = MailingAttachment.objects.filter(mailing_id = mailing.id).distinct()
+  
+   return render(request, 'employees/mailing.html', {
+      'mailing': mailing,
+      'attachments': attachments,
+   })   
+
+#удаление рассылки
+@csrf_exempt   
+def delete_mailing(request):
+   if request.method == 'POST':
+      try:
+         id = json.loads(request.body)
+         #удаляем рассылку и ее вложения
+         mailing = Mailing.objects.filter(id = id).delete()
+         attachments = MailingAttachment.objects.filter(mailing_id = id).delete()
+         
+         return JsonResponse({
+            'success': True,
+            'message': 'Рассылка успешно удалена'
+        })
+         
+      except Exception as e:
+         return JsonResponse({'Ошибка': str(e)}, status=400)
+   
+   return JsonResponse({'error': 'Ошибка запроса'}, status=400)   
+
+#информация о рассылке
+@csrf_exempt
+def get_mailings(request):
+   mailings = Mailing.objects.all().values('id', 'tag', 'name', 'description')
+   return JsonResponse(list(mailings), safe=False)
+
+
+   

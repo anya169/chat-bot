@@ -1,7 +1,6 @@
 from django.contrib import admin
 from core.models import *
 from django.utils.html import format_html
-from bot.create_bot import bot, dp
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
@@ -11,48 +10,48 @@ class EmployeeAdmin(admin.ModelAdmin):
    ordering = ('name', 'filial')
    actions = ['send_1_month_poll']
 
-   @admin.action(description="Отправить опрос через 1 месяц выбранным сотрудникам")
+   
+   @admin.action(description="Отправить опрос через 1 месяц")
    def send_1_month_poll(self, request, queryset):
+      from bot.create_bot import bot, dp
       from django.contrib import messages
       import asyncio
-      loop = asyncio.new_event_loop()
-      asyncio.set_event_loop(loop)
-      async def send_poll(employee):
+      import logging
+      logger = logging.getLogger(__name__)
+      async def async_send_wrapper(employee_id):
          try:
-               from bot.handlers.after_1_month import start_poll_after_1_month_by_admin
-               await start_poll_after_1_month_by_admin(employee.telegram_id)
+            from bot.scheduler import send_poll_after_1_month
+            return await send_poll_after_1_month(employee_id)
          except Exception as e:
-               print(f"Ошибка для {employee.telegram_id}: {str(e)}")
-               return False
+            logger.error(f"Ошибка в wrapper: {str(e)}", exc_info=True)
+            return False
 
-      # Основная обработка
-      success = 0
-      errors = 0
+      def sync_send_wrapper(employee_id):
+         loop = asyncio.new_event_loop()
+         asyncio.set_event_loop(loop)
+         try:
+               result = loop.run_until_complete(async_send_wrapper(employee_id))
+               return result
+         except Exception as e:
+               logger.error(f"Ошибка в синхронной обёртке: {str(e)}", exc_info=True)
+               return False
+         finally:
+               loop.close()
 
       for employee in queryset:
          if not employee.telegram_id:
                messages.warning(request, f"Нет telegram_id у {employee.name}")
-               errors += 1
                continue
-
+               
          try:
-        
-            result = loop.run_until_complete(send_poll(employee))
-
-            if result:
-               messages.success(request, f"Успешно: {employee.name}")
-               success += 1
-            else:
-               messages.error(request, f"Ошибка: {employee.name}")
-               errors += 1
+               result = sync_send_wrapper(employee.id)
+               if result is True:
+                  messages.success(request, f"Успешно отправлено: {employee.name}")
+               else:
+                  messages.error(request, f"Не удалось отправить: {employee.name}")
          except Exception as e:
-               messages.error(request, f"Критическая ошибка: {str(e)}")
-               errors += 1
-         finally:
-            loop.close()
-
-
-   
+               messages.error(request, f"Критическая ошибка для {employee.name}: {str(e)}")
+               
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):   
    list_display = ('name', 'submission_date')

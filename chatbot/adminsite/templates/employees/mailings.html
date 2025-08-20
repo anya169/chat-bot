@@ -1,0 +1,29 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Управление рассылками</title>
+   <link rel="stylesheet" href="{% static '/css/common.css' %}">
+</head>
+<body class='layout'>
+   {% block sidebar %}
+      {% include 'includes/sidebar.html' %}
+   {% endblock %}
+   <main class="content">
+      <h3>Рассылки</h3>
+      <div class="employees-panel">
+         <ul>
+            {% for mailing in mailings %}
+            <a href="{% url 'mailing' mailing.id %}" class="chat">
+               <img src="{% static 'images/mail.svg' %}" class="chat-svg">
+               {{ mailing.tag }}  
+            </a>
+            
+            {% empty %}
+            <li>Не создано ни одной рассылки</li>
+            {% endfor %}
+         </ul>
+   </main>
+</body>
+</html>

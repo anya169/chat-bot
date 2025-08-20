@@ -18,12 +18,14 @@ from aiogram.types import InputMediaPhoto, InputMediaDocument
 from core.models import Employee, Mailing, MailingAttachment
 from django.core.files import File
 from datetime import datetime
+from django.conf import settings
 
 sys.path.append('C:/chat-bot/chatbot')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
 django.setup()
 
 class Create_mailing(StatesGroup):
+   tag = State()
    name = State()
    description = State()
    attachment = State()
@@ -38,7 +40,18 @@ async def create_mailing(message: Message, state: FSMContext):
    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
       await asyncio.sleep(short_delay)
       await message.answer(
-         "Созданная вами рассылка будет разослана всем молодым сотрудникам\n\n"
+         "Созданная вами рассылка будет отображаться на сайте\n\n"
+         "Введите тег рассылки: ",
+         reply_markup=ReplyKeyboardRemove()
+      )
+   await state.set_state(Create_mailing.tag)
+
+@mailing_router.message(F.text, Create_mailing.tag)
+async def create_name(message: Message, state: FSMContext):
+   await state.update_data(tag=message.text)
+   async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+      await asyncio.sleep(short_delay)
+      await message.answer(
          "Введите название рассылки: ",
          reply_markup=ReplyKeyboardRemove()
       )
@@ -84,31 +97,37 @@ async def process_attachment(message: Message, state: FSMContext):
       if message.photo:
          photo = message.photo[-1]
          file = await bot.get_file(photo.file_id)
-         os.makedirs("media/mailings", exist_ok=True)
-         file_path = f"media/mailings/{photo.file_id}.jpg"
-         await bot.download_file(file.file_path, file_path)
+         media_dir = os.path.join(settings.MEDIA_ROOT, "mailings")
+         file_name = f"{photo.file_id}.jpg"
+         full_path = os.path.join(media_dir, file_name)
+         relative_path = os.path.join("mailings", file_name)
+         await bot.download_file(file.file_path, full_path)
          
          attachments.append({
                'type': 'photo',
                'file_id': photo.file_id,
-               'path': file_path,
-               'telegram_file': file
+               'file_name': file_name,
+               'path': relative_path,
+               'telegram_file': file,
+               'full_path': full_path
          })
          
       #обработка документов
       elif message.document:
          doc = message.document
          file = await bot.get_file(doc.file_id)
-         os.makedirs("media/mailings", exist_ok=True)
+         media_dir = os.path.join(settings.MEDIA_ROOT, "mailings")
          file_name = doc.file_name or f"document_{doc.file_id}"
-         file_path = f"media/mailings/{file_name}"
-         await bot.download_file(file.file_path, file_path)
+         full_path = os.path.join(media_dir, file_name)
+         relative_path = os.path.join("mailings", file_name)
+         await bot.download_file(file.file_path, full_path)
          
          attachments.append({
                'type': 'document',
                'file_id': doc.file_id,
-               'path': file_path,
+               'path': relative_path,
                'file_name': file_name,
+               'full_path': full_path,
                'telegram_file': file
          })
       
@@ -126,12 +145,14 @@ async def process_attachment(message: Message, state: FSMContext):
 
 async def show_confirmation(message: Message, state: FSMContext):
    data = await state.get_data()
+   tag = data.get('tag', '')
    name = data.get('name', '')
    description = data.get('description', '')
    attachments = data.get('attachments', [])
    
    text = (
       f"Подтвердите содержимое рассылки. Если необходимо добавить еще вложения, нажмите Добавить еще файлы:\n\n"
+      f"<b>Тег:</b> {tag}\n"
       f"<b>Название:</b> {name}\n"
       f"<b>Описание:</b> {description}\n"
       f"<b>Количество вложений:</b> {len(attachments)}"
@@ -144,7 +165,7 @@ async def show_confirmation(message: Message, state: FSMContext):
          if attachments:
                media = []
                for i, attachment in enumerate(attachments):
-                  file_path = Path(attachment['path'])
+                  file_path = attachment['full_path']
                   if attachment['type'] == 'photo':
                      if i == 0:  #подпись только к первому файлу
                            media.append(InputMediaPhoto(
@@ -159,13 +180,14 @@ async def show_confirmation(message: Message, state: FSMContext):
                   elif attachment['type'] == 'document':
                      if i == 0:
                            media.append(InputMediaDocument(
-                              media=FSInputFile(file_path, filename=attachment.get('file_name', file_path.name)),
+                              media=FSInputFile(file_path),
                               caption=text,
-                              parse_mode="HTML"
+                              parse_mode="HTML",
+                              filename=attachment['file_name']
                            ))
                      else:
                            media.append(InputMediaDocument(
-                              media=FSInputFile(file_path, filename=attachment.get('file_name', file_path.name))
+                              media=FSInputFile(file_path, attachment['file_name'])
                            ))
                
                #отправляем все вложения одним медиагруппом
@@ -184,10 +206,12 @@ async def show_confirmation(message: Message, state: FSMContext):
       except Exception as e:
          print(f"Ошибка при показе подтверждения: {str(e)}")
          await message.answer(
-               "Не удалось отобразить вложения. Пожалуйста, попробуйте отправить файлы еще раз.",
-               reply_markup=attachment_kb()
+               "Не удалось отобразить вложения. Все вложения должны быть одного типа (только документы или только изображения). Пожалуйста, попробуйте еще раз. Введите новый тег рассылки: ",
+               reply_markup=ReplyKeyboardRemove()
          )
-         await state.set_state(Create_mailing.attachment)
+         data['attachments'] = [] 
+         await state.update_data(attachments=[])
+         await state.set_state(Create_mailing.tag)
          return
    
    await state.set_state(Create_mailing.accept)
@@ -195,7 +219,7 @@ async def show_confirmation(message: Message, state: FSMContext):
 @mailing_router.message(F.text == "Добавить ещё файлы", Create_mailing.accept)
 async def add_more_files(message: Message, state: FSMContext):
    await message.answer(
-      "Прикрепите дополнительные файлы:",
+      "Все вложения должны быть одного типа (только документы или только изображения). Прикрепите дополнительные файлы:",
       reply_markup=attachment_kb()
    )
    await state.set_state(Create_mailing.attachment)
@@ -203,104 +227,50 @@ async def add_more_files(message: Message, state: FSMContext):
 @mailing_router.message(F.text == "Подтвердить", Create_mailing.accept)
 async def send_mailing(message: Message, state: FSMContext):
    data = await state.get_data()
-   name = data.get('name', '')
-   description = data.get('description', '')
    attachments = data.get('attachments', [])
    
-   #сохраняем рассылку в базу
-   telegram_id = message.from_user.id
-   employee = await sync_to_async(Employee.objects.get)(telegram_id=telegram_id)
+   # Сохраняем рассылку
    mailing = Mailing(
-      name=name,
-      employee_id=employee.id,
-      description = description,
+      tag=data.get('tag'),
+      name=data.get('name'),
+      employee_id=(await sync_to_async(Employee.objects.get)(telegram_id=message.from_user.id)).id,
+      description=data.get('description')
    )
    await sync_to_async(mailing.save)()
    
-   #сохраняем вложения
+   # Сохраняем вложения
    for attachment in attachments:
-      file_path = attachment['path']
-      file_name = attachment.get('file_name', Path(file_path).name)
-      file_type = attachment['type']
-      
-      with open(file_path, 'rb') as f:
-         django_file = File(f)
-         mailing_attachment = MailingAttachment(
-            mailing=mailing,
-            file=django_file,
-            file_type=file_type,
-            file_name=file_name
-         )
-         await sync_to_async(mailing_attachment.save)()
-        
-   employees = await sync_to_async(list)(
-      Employee.objects.exclude(telegram_id__isnull=True).filter(is_curator=False, is_admin=False)
-   )
-   
-   async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
-      await asyncio.sleep(short_delay)
-      await message.answer(
-         f"Начинаю рассылку для {len(employees)} сотрудников...",
-         reply_markup=ReplyKeyboardRemove()
-      )
-   
-   success_count = 0
-   for employee in employees:
       try:
-         if attachments:
-               media = []
-               for i, attachment in enumerate(attachments):
-                  file_path = Path(attachment['path'])
-                  if attachment['type'] == 'photo':
-                     if i == 0:  #подпись только к первому файлу
-                           media.append(InputMediaPhoto(
-                              media=FSInputFile(file_path),
-                              caption=f"<b>{name}</b>\n\n{description}",
-                              parse_mode="HTML"
-                           ))
-                     else:
-                           media.append(InputMediaPhoto(
-                              media=FSInputFile(file_path)
-                           ))
-                  elif attachment['type'] == 'document':
-                     if i == 0:
-                           media.append(InputMediaDocument(
-                              media=FSInputFile(file_path, filename=attachment.get('file_name', file_path.name)),
-                              caption=f"<b>{name}</b>\n\n{description}",
-                              parse_mode="HTML"
-                           ))
-                     else:
-                           media.append(InputMediaDocument(
-                              media=FSInputFile(file_path, filename=attachment.get('file_name', file_path.name))
-                           ))
+         file_path = attachment['full_path']
+         
+         if not os.path.exists(file_path):
+               print(f"Файл не найден: {file_path}")
+               continue
                
-               #отправляем все вложения одним медиагруппом
-               await bot.send_media_group(
-                  chat_id=employee.telegram_id,
-                  media=media
+         with open(file_path, 'rb') as f:
+               django_file = File(f, name=os.path.basename(file_path)) 
+               mailing_attachment = MailingAttachment(
+                  mailing=mailing,
+                  file=django_file,
+                  file_type=attachment['type'],
+                  file_name=attachment['file_name']  
                )
-         else:
-               await bot.send_message(
-                  chat_id=employee.telegram_id,
-                  text=f"<b>{name}</b>\n\n{description}",
-                  parse_mode="HTML"
-               )
-         success_count += 1
-         await asyncio.sleep(0.1)
+               await sync_to_async(mailing_attachment.save)()
+               
       except Exception as e:
-         print(f"Ошибка при отправке сотруднику {employee.telegram_id}: {e}")
+         print(f"Ошибка сохранения вложения: {e}")
+         continue
    
-   await message.answer(
-      f"Рассылка завершена! Успешно отправлено для {success_count} из {len(employees)} сотрудников."
-   )
+   await message.answer("Рассылка сохранена!", reply_markup=ReplyKeyboardRemove())
    await state.clear()
-
+    
 @mailing_router.message(F.text == "Отредактировать", Create_mailing.accept)
 async def edit_mailing(message: Message, state: FSMContext):
    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
       await asyncio.sleep(short_delay)
       await message.answer(
-         "Введите новое название рассылки: ",
+         "Введите новый тег рассылки: ",
          reply_markup=ReplyKeyboardRemove()
       )
-   await state.set_state(Create_mailing.name)
+   await state.set_state(Create_mailing.tag)
+

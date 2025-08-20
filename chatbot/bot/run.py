@@ -14,8 +14,12 @@ from scheduler import schedule_polls
 from handlers.default_kb import set_default_command
 
 from create_bot import bot, dp
+from pathlib import Path
+import sys
 
-
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
+      
 async def main():
     #await initialize_poll_data() # использовать функцию только при первом запуске, потом нужно закомментировать
     #await initialize_filials_data() # использовать функцию только при первом запуске, потом нужно закомментировать

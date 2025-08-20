@@ -420,5 +420,117 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(error);
          }
       }
+      //обработчик кнопки для рассылок
+      document.getElementById('mailing-button').addEventListener('click', function() {
+         openMailingModal();
+      });
+
+      //закрытие модального окна
+      document.querySelector('.close').addEventListener('click', closeModal);
+      document.getElementById('cancelMailing').addEventListener('click', closeModal);
+
+      //обработчик выбора рассылки
+      document.getElementById('mailingSelect').addEventListener('change', function() {
+         const mailingId = this.value;
+         const sendButton = document.getElementById('sendSelectedMailing');
+         
+         if (mailingId) {
+            sendButton.disabled = false;
+         } else {
+            sendButton.disabled = true;
+         }
+      });
+
+      //обработчик отправки рассылки
+      document.getElementById('sendSelectedMailing').addEventListener('click', function() {
+         sendMailingToSelectedEmployees();
+      });
+
+      //открытие модального окна
+      function openMailingModal() {
+         const selectedEmployees = getSelectedEmployees();
+         
+         //если никто не выбран
+         if (selectedEmployees.length === 0) {
+            alert('Пожалуйста, выберите хотя бы одного сотрудника');
+            return;
+         }
+
+         document.getElementById('mailingModal').style.display = 'block';
+         loadMailings(); //загружаем список рассылок
+      }
+
+      //закрытие модалки
+      function closeModal() {
+         document.getElementById('mailingModal').style.display = 'none';
+      }
+
+      //загрузка списка рассылок
+      async function loadMailings() {
+         try {
+            const response = await fetch(GET_MAILINGS_URL, {
+               headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+               }
+            });
+            
+            if (response.ok) {
+               const mailings = await response.json();
+               const select = document.getElementById('mailingSelect');
+               
+               //заполняем поля выпадающего списка
+               select.innerHTML = '<option value="">-- Выберите рассылку --</option>';
+               mailings.forEach(mailing => {
+                  const option = document.createElement('option');
+                  option.value = mailing.id;
+                  option.textContent = `${mailing.tag}`;
+                  select.appendChild(option);
+               });
+            }
+         } catch (error) {
+            console.error('Ошибка загрузки рассылок:', error);
+         }
+      }
+
+      //отправка рассылки выбранным сотрудникам
+      async function sendMailingToSelectedEmployees() {
+         const mailingId = document.getElementById('mailingSelect').value;
+         const selectedEmployees = getSelectedEmployees();
+
+         if (!mailingId) {
+            alert('Пожалуйста, выберите рассылку');
+            return;
+         }
+
+         if (selectedEmployees.length === 0) {
+            alert('Пожалуйста, выберите хотя бы одного сотрудника');
+            return;
+         }
+
+         
+         const sendBtn = document.getElementById('sendSelectedMailing');
+         sendBtn.disabled = true;
+         //подготавливаем данные: айди рассылки и айди выбранных сотрудников
+         const requestData = {
+            mailing_id: parseInt(mailingId),
+            employee_ids: selectedEmployees.map(emp => parseInt(emp.id))
+         };
+
+         const response = await fetch(SEND_MAILINGS_URL, {
+            method: 'POST',
+            headers: {
+               'Content-Type': 'application/json',
+               'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(requestData)
+         });
+         
+         //выводим результат рассылки
+         const result = await response.json();
+         alert(`Рассылка отправлена! Успешно: ${result.success_count}, Не отправлено: ${result.error_count}`);
+         closeModal();
+         sendBtn.disabled = false;
+      
+      }
 });
 

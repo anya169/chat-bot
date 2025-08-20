@@ -96,25 +96,6 @@ async def finish_poll(message: Message, state: FSMContext, question_id=None):
     await state.clear()
 
 
-async def start_poll_after_1_month_by_admin(telegram_id: int):   
-    state = dp.fsm.get_context(
-        bot=bot,
-        chat_id=telegram_id,
-        user_id=telegram_id
-    )
-    
-    await state.set_state(Form_1.how_are_you)
-    
-    # Отправляем сообщение
-    await bot.send_message(
-        chat_id=telegram_id,
-        text='Привет!\n\n'
-            'Поздравляю тебя с успешным стартом в нашей команде — прошёл уже целый месяц! \n'
-            'Для того, чтобы мы могли вместе увидеть, насколько успешно идёт процесс адаптации и интеграции, предлагаю заполнить небольшой опрос по чек-листу обратной связи.\n'
-            'Нажми кнопку «Готов(а)!», и мы начнем наш диалог!',
-        reply_markup=await ready_kb(telegram_id)
-    )
-
 @after_1_month_router.message(Command('after_1_month'))
 async def start_poll_after_1_month(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id = message.chat.id):

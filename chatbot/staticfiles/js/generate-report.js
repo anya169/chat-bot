@@ -420,5 +420,123 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(error);
          }
       }
+      document.getElementById('mailing-button').addEventListener('click', function() {
+         openMailingModal();
+      });
+
+      // Закрытие модального окна
+      document.querySelector('.close').addEventListener('click', closeModal);
+      document.getElementById('cancelMailing').addEventListener('click', closeModal);
+
+      // Обработчик выбора рассылки
+      document.getElementById('mailingSelect').addEventListener('change', function() {
+         const mailingId = this.value;
+         const sendButton = document.getElementById('sendSelectedMailing');
+         
+         if (mailingId) {
+            sendButton.disabled = false;
+         } else {
+            sendButton.disabled = true;
+         }
+      });
+
+      // Обработчик отправки рассылки
+      document.getElementById('sendSelectedMailing').addEventListener('click', function() {
+         sendMailingToSelectedEmployees();
+      });
+
+      // Функция открытия модального окна
+      function openMailingModal() {
+         const selectedEmployees = getSelectedEmployees();
+         
+         if (selectedEmployees.length === 0) {
+            alert('Пожалуйста, выберите хотя бы одного сотрудника');
+            return;
+         }
+
+         document.getElementById('mailingModal').style.display = 'block';
+         loadMailings(); // Загружаем список рассылок
+      }
+
+      function closeModal() {
+         document.getElementById('mailingModal').style.display = 'none';
+      }
+
+      // Загрузка списка рассылок
+      async function loadMailings() {
+         try {
+            const response = await fetch(GET_MAILINGS_URL, {
+                  headers: {
+                     'X-CSRFToken': getCookie('csrftoken')
+                  }
+            });
+            
+            if (response.ok) {
+                  const mailings = await response.json();
+                  const select = document.getElementById('mailingSelect');
+                  
+                  // Очищаем и заполняем select
+                  select.innerHTML = '<option value="">-- Выберите рассылку --</option>';
+                  mailings.forEach(mailing => {
+                     const option = document.createElement('option');
+                     option.value = mailing.id;
+                     option.textContent = `${mailing.tag}`;
+                     select.appendChild(option);
+                  });
+            }
+         } catch (error) {
+            console.error('Ошибка загрузки рассылок:', error);
+         }
+      }
+
+      // Отправка рассылки выбранным сотрудникам
+      async function sendMailingToSelectedEmployees() {
+         const mailingId = document.getElementById('mailingSelect').value;
+         const selectedEmployees = getSelectedEmployees();
+
+         console.log("mailingId:", mailingId, typeof mailingId);
+         console.log("selectedEmployees:", selectedEmployees);
+
+         if (!mailingId) {
+            alert('Пожалуйста, выберите рассылку');
+            return;
+         }
+
+         if (selectedEmployees.length === 0) {
+            alert('Пожалуйста, выберите хотя бы одного сотрудника');
+            return;
+         }
+
+         
+         const sendBtn = document.getElementById('sendSelectedMailing');
+         sendBtn.disabled = true;
+         // Подготавливаем данные
+         const requestData = {
+               mailing_id: parseInt(mailingId),
+               employee_ids: selectedEmployees.map(emp => parseInt(emp.id))
+         };
+
+         console.log('Отправка на URL:', SEND_MAILINGS_URL);
+         console.log('Данные для отправки:', requestData);
+         console.log("CSRF токен:", getCookie('csrftoken') ? "ЕСТЬ" : "ОТСУТСТВУЕТ!");
+
+         const response = await fetch(SEND_MAILINGS_URL, {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCookie('csrftoken')
+               },
+               body: JSON.stringify(requestData)
+         });
+         console.log("Статус ответа:", response.status);
+         const responseText = await response.text();
+         console.log("Текст ответа:", responseText);
+         
+         const result = await response.json();
+         alert(`Рассылка отправлена! Успешно: ${result.success_count}, Ошибок: ${result.error_count}`);
+         closeModal();
+         sendBtn.disabled = false;
+      
+      }
 });
 

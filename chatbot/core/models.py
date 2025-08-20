@@ -131,6 +131,7 @@ class Special_Question(models.Model):
 class Mailing(models.Model):
    objects = models.Manager()
    
+   tag = models.CharField(null=True, blank=True, verbose_name='Тег рассылки')
    name = models.CharField(null=True, blank=True, verbose_name='Название рассылки')
    description = models.CharField(null=True, blank=True, verbose_name='Описание рассылки')
    creation_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания рассылки')

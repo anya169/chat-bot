@@ -1,0 +1,51 @@
+{% load static %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Информация о рассылке</title>
+   <link rel="stylesheet" href="{% static '/css/common.css' %}">
+</head>
+<body class='layout'>
+   {% block sidebar %}
+      {% include 'includes/sidebar.html' %}
+   {% endblock %}
+   <main class="content">
+      <h3>Информация о рассылке</h3>
+      <div class="employees-panel" id="{{ mailing.id }}">
+         <div class="account">
+            <span class="employee__info">{{ mailing.tag }}</span>
+            <div class="employee__info">Название: {{ mailing.name|default:"-" }}</div>
+            <div class="employee__info">Описание: {{ mailing.description|default:"-" }}</div>
+         </div>
+          <div class="attachments">
+               <h4>Вложения:</h4>
+               {% if attachments %}
+                  <div class="attachment-list">
+                     {% for attachment in attachments %}
+                        {% if attachment.file_type == 'photo' %}
+                           <div class="attachment-photo">
+                              <img src="{{ attachment.file.url }}" style="max-width: 300px;">
+                           </div>
+                        {% else %}
+                           <div class="attachment-document">
+                              <a href="{{ attachment.file.url }}" download>
+                                 📄 {{ attachment.file_name|default:"Документ" }}
+                              </a>
+                           </div>
+                        {% endif %}
+                     {% endfor %}
+                  </div>
+               {% else %}
+                  <p>Нет вложений</p>
+               {% endif %}
+            </div>
+            <button id="delete-mailing" class="delete-mailing button">Удалить рассылку</button>
+      </div>
+   </main>
+   <script src="{% static 'js/mailing.js' %}"></script>
+</body>
+</html>
+<script>
+  const DELETE_URL = "{% url 'delete_mailing' %}";
+</script>

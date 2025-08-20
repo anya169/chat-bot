@@ -115,6 +115,9 @@ a:hover {
    border-radius: 10px;
    cursor: pointer;
 }
+.delete-mailing {
+   margin-top: 10px;
+}
 .button-inverse {
    min-width: 100px;
    font-size: 14px;
@@ -269,7 +272,10 @@ a:hover {
    display: flex;
 }
 .report-button{
-   margin-left: 600px;
+   margin-left: 10px;
+}
+.send-mailing{
+   margin-left: 450px;
 }
 .employee-controls{
    display: flex;
@@ -382,4 +388,52 @@ a:hover {
    border-radius: 50%;
    font-size: 12px;
    font-weight: bold;
+}
+
+/* Стили для модального окна */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #0078C1;
+    width: 50%;
+    border-radius: 8px;
+}
+
+.close {
+    color: #0078C1;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #0078C1;
+}
+
+.form-select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.button-secondary {
+    background-color: #6c757d;
+}
+
+.button-secondary:hover {
+    background-color: #5a6268;
 }

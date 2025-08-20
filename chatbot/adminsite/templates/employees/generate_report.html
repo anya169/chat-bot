@@ -26,6 +26,7 @@
                </label>
                <button id="reset-filters" class="button">Сбросить фильтры</button>
             </div>
+               <button type="button" id="mailing-button" class="send-mailing button">Отправить рассылку</button>
                <button type="button" id="report-button" class="report-button button">Сформировать отчёт</button>
          </div>
          
@@ -282,6 +283,32 @@
             </div>
             {% endif %}
          </div>
+         <!-- Модальное окно выбора рассылки -->
+         <div id="mailingModal" class="modal" style="display: none;">
+            <div class="modal-content">
+               <span class="close">&times;</span>
+               <h4>Выберите рассылку для отправки</h4>
+               
+               <div class="modal-body">
+                     <select id="mailingSelect" class="form-select">
+                        <option value="">-- Выберите рассылку --</option>
+                        {% for mailing in mailings %}
+                           <option value="{{ mailing.id }}">{{ mailing.tag }}</option>
+                        {% endfor %}
+                     </select>
+                     
+                     <div id="mailingPreview" style="margin-top: 20px; display: none;">
+                        <h4>Предпросмотр:</h4>
+                        <div id="previewContent"></div>
+                     </div>
+                     
+                     <div class="modal-buttons" style="margin-top: 20px;">
+                        <button id="sendSelectedMailing" class="button" disabled>Отправить выбранным</button>
+                        <button id="cancelMailing" class="button button-secondary">Отмена</button>
+                     </div>
+               </div>
+            </div>
+         </div>
       </div>
                  
          
@@ -297,4 +324,6 @@
 <script>
   const FILTER_EMPLOYEES_URL = "{% url 'filter_employees' %}";
   const GENERATE_REPORT_URL = "{% url 'download_report' %}";
+  const GET_MAILINGS_URL = "{% url 'get_mailings' %}";
+  const SEND_MAILINGS_URL = "{% url 'send_mailing_to_employee' %}";
 </script>
