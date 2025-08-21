@@ -138,7 +138,7 @@ async def capture_hire_date(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     msg_text = f'{data.get("name")}, укажи дату приёма в компанию в формате DD.MM.YYYY (например, 01.01.2025):'
     await asyncio.sleep(short_delay)
-    await callback.message.answer(msg_text)
+    await callback.message.answer(msg_text, reply_markup = ReplyKeyboardRemove())
     await state.set_state(Form.curator_information)
     await callback.answer()
 

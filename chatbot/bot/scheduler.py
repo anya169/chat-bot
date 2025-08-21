@@ -16,9 +16,9 @@ from channels.db import database_sync_to_async
 
 async def has_completed_poll(employee_id, poll_name):
     try:
-        poll = await database_sync_to_async(Poll.objects.get)(name=poll_name)
+        poll = await sync_to_async(Poll.objects.get, thread_sensitive=True)(name=poll_name)
         queryset = Answer.objects.filter(login_id=employee_id, question__poll=poll)
-        exists = await sync_to_async(queryset.exists)()
+        exists = await sync_to_async(queryset.exists, thread_sensitive=True)()
         return exists
     except Poll.DoesNotExist:
         return False
@@ -38,12 +38,12 @@ async def is_user_available(telegram_id):
         return current_state is None
     except Exception as e:
         logger.error(f"Ошибка при проверке состояния пользователя {telegram_id}: {e}")
-        return False
+        return True
 
 async def send_poll_after_1_month(employee_id):
     if (not await has_completed_poll(employee_id, "Опрос через месяц")): #если сотрудник еще не проходил опрос
         try:
-            employee = await database_sync_to_async(Employee.objects.get)(id=employee_id)
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
                 logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 1 месяц отложен")
                 return
@@ -72,7 +72,7 @@ async def send_poll_after_3_month(employee_id):
     """Отправляет опрос через 3 месяца после трудоустройства"""
     if (not await has_completed_poll(employee_id, "Опрос через 3 месяца")): #если сотрудник еще не проходил опрос
         try:
-            employee = await database_sync_to_async(Employee.objects.get)(id=employee_id)
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
                 logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 3 месяца отложен")
                 return
@@ -102,7 +102,7 @@ async def send_poll_after_6_month(employee_id):
     """Отправляет опрос через 6 месяцев после трудоустройства"""
     if (not await has_completed_poll(employee_id, "Опрос через 6 месяцев")): #если сотрудник еще не проходил опрос
         try:
-            employee = await database_sync_to_async(Employee.objects.get)(id=employee_id)
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
                 logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 6 месяцев отложен")
                 return
@@ -131,7 +131,7 @@ async def send_poll_after_12_month(employee_id):
     """Отправляет опрос через 12 месяцев после трудоустройства"""
     if (not await has_completed_poll(employee_id, "Опрос через 12 месяцев")): #если сотрудник еще не проходил опрос
         try:
-            employee = await database_sync_to_async(Employee.objects.get)(id=employee_id)
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
             if not await is_user_available(employee.telegram_id):
                 logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 12 месяцев отложен")
                 return
@@ -163,7 +163,9 @@ def schedule_poll(scheduler, employee, days_delta, send_func):
         send_time = datetime.combine(
             send_date,
             datetime.strptime("10:00", "%H:%M").time()
-        ).replace(tzinfo=None)
+        )
+        logger.info(f"Время отправки для {employee.id}: {send_time}")
+
         
         if send_time > datetime.now():
             scheduler.add_job(
@@ -175,7 +177,14 @@ def schedule_poll(scheduler, employee, days_delta, send_func):
             )
             logger.info(f"Запланирован опрос через {days_delta} дней для сотрудника {employee.id} на {send_time}")
         else:
-            asyncio.create_task(send_func(employee.id))
+            scheduler.add_job(
+                send_func,
+                trigger=DateTrigger(run_date=datetime.now()),
+                args=[employee.id],
+                id=f"poll_immediate_{employee.id}",
+                replace_existing=True
+            )
+            logger.info(f"Отправлен немедленный опрос для сотрудника {employee.id}")
     except Exception as e:
         logger.error(f"Ошибка при планировании опроса для сотрудника {employee.id}: {e}")
 
@@ -200,7 +209,10 @@ async def schedule_polls():
         replace_existing=True
         )
          
-        employees = await sync_to_async(list)(Employee.objects.exclude(hire_date__isnull=True))
+        employees = await sync_to_async(
+            lambda: list(Employee.objects.exclude(hire_date__isnull=True)),
+            thread_sensitive=True
+        )()        
         logger.info(f"Найдено {len(employees)} сотрудников для планирования опросов")
         
         for employee in employees:
@@ -214,15 +226,15 @@ async def schedule_polls():
                 
                 # Для новых сотрудников (<1 месяца) - планируем опросы
                 if days_employed < 30:
-                    schedule_poll(scheduler, employee, 30, send_poll_after_1_month)
-                    schedule_poll(scheduler, employee, 90, send_poll_after_3_month)
-                    schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
-                    schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                    if await is_user_available(employee.telegram_id):
+                        schedule_poll(scheduler, employee, 30, send_poll_after_1_month)
+                        schedule_poll(scheduler, employee, 90, send_poll_after_3_month)
+                        schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
+                        schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
                 
                 # Для работающих 1-3 месяца
                 elif 30 <= days_employed < 90:
                     if await is_user_available(employee.telegram_id):
-                        await send_poll_after_1_month(employee.id)
                         schedule_poll(scheduler, employee, 90, send_poll_after_3_month)
                         schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
                         schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
@@ -230,20 +242,18 @@ async def schedule_polls():
                 # Для работающих 3-6 месяцев
                 elif 90 <= days_employed < 180:
                     if await is_user_available(employee.telegram_id):
-                        await send_poll_after_3_month(employee.id)
                         schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
                         schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
                 
                 # Для работающих 6-12 месяцев 
                 elif 180 <= days_employed < 365:
                     if await is_user_available(employee.telegram_id):
-                        await send_poll_after_6_month(employee.id)
                         schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
                         
                 # Для работающих больше года       
                 else:
                     if await is_user_available(employee.telegram_id):
-                        await send_poll_after_12_month(employee.id)
+                        schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
             
             except Exception as e:
                 logger.error(f"Ошибка обработки сотрудника {employee.id}: {e}")
