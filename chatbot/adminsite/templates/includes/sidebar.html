@@ -18,4 +18,11 @@
       {% comment %} <div class="sidebar__item">СТАТИСТИКА</div>
       <div class="sidebar__subitem"><a href="/statistic">Посмотреть статистику</a></div> {% endcomment %}
    </ul>
+   <form method="post" action="{% url 'logout' %}" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" onclick="clearForm()" class='logoutButton button'>
+         Выйти
+      </button>
+   </form>
+   <script src="{% static 'js/logout.js' %}"></script>
 </div>

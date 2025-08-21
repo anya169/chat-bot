@@ -1,4 +1,7 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth import logout
+from chatbot import settings
 from .models import *
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
@@ -6,17 +9,17 @@ from django.views.decorators.csrf import csrf_exempt
 import os
 from django.http import FileResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
 import json
 from datetime import datetime
-from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
-from django.db.models import Count, Q, Case, When, IntegerField
+from django.db.models import Count
 
 #авторизация
 @csrf_exempt
 def login_user(request):
+   if request.user.is_authenticated:
+      return redirect('curator_account')
    if request.method == 'POST':
       username = request.POST.get("username")
       password = request.POST.get("password")
@@ -50,6 +53,14 @@ def login_user(request):
 #вход
 def login_page(request):
    return render(request, 'personal_account/login.html')
+
+#выход пользователя
+@csrf_exempt
+def logout_view(request):
+   logout(request)
+   #очищаем сессию
+   request.session.flush()
+   return redirect(f'{settings.LOGIN_URL}?logout=true')
 
 @login_required
 #личный кабинет куратора

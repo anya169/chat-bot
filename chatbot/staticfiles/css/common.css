@@ -274,7 +274,7 @@ a:hover {
 .report-button{
    margin-left: 10px;
 }
-.send-mailing{
+.report-button{
    margin-left: 450px;
 }
 .employee-controls{
@@ -436,4 +436,8 @@ a:hover {
 
 .button-secondary:hover {
     background-color: #5a6268;
+}
+
+.logoutButton{
+   bottom: 0px;
 }

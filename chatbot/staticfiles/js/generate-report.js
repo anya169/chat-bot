@@ -420,15 +420,16 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(error);
          }
       }
+      //обработчик кнопки для рассылок
       document.getElementById('mailing-button').addEventListener('click', function() {
          openMailingModal();
       });
 
-      // Закрытие модального окна
+      //закрытие модального окна
       document.querySelector('.close').addEventListener('click', closeModal);
       document.getElementById('cancelMailing').addEventListener('click', closeModal);
 
-      // Обработчик выбора рассылки
+      //обработчик выбора рассылки
       document.getElementById('mailingSelect').addEventListener('change', function() {
          const mailingId = this.value;
          const sendButton = document.getElementById('sendSelectedMailing');
@@ -440,62 +441,61 @@ document.addEventListener('DOMContentLoaded', function() {
          }
       });
 
-      // Обработчик отправки рассылки
+      //обработчик отправки рассылки
       document.getElementById('sendSelectedMailing').addEventListener('click', function() {
          sendMailingToSelectedEmployees();
       });
 
-      // Функция открытия модального окна
+      //открытие модального окна
       function openMailingModal() {
          const selectedEmployees = getSelectedEmployees();
          
+         //если никто не выбран
          if (selectedEmployees.length === 0) {
             alert('Пожалуйста, выберите хотя бы одного сотрудника');
             return;
          }
 
          document.getElementById('mailingModal').style.display = 'block';
-         loadMailings(); // Загружаем список рассылок
+         loadMailings(); //загружаем список рассылок
       }
 
+      //закрытие модалки
       function closeModal() {
          document.getElementById('mailingModal').style.display = 'none';
       }
 
-      // Загрузка списка рассылок
+      //загрузка списка рассылок
       async function loadMailings() {
          try {
             const response = await fetch(GET_MAILINGS_URL, {
-                  headers: {
-                     'X-CSRFToken': getCookie('csrftoken')
-                  }
+               headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+               }
             });
             
             if (response.ok) {
-                  const mailings = await response.json();
-                  const select = document.getElementById('mailingSelect');
-                  
-                  // Очищаем и заполняем select
-                  select.innerHTML = '<option value="">-- Выберите рассылку --</option>';
-                  mailings.forEach(mailing => {
-                     const option = document.createElement('option');
-                     option.value = mailing.id;
-                     option.textContent = `${mailing.tag}`;
-                     select.appendChild(option);
-                  });
+               const mailings = await response.json();
+               const select = document.getElementById('mailingSelect');
+               
+               //заполняем поля выпадающего списка
+               select.innerHTML = '<option value="">-- Выберите рассылку --</option>';
+               mailings.forEach(mailing => {
+                  const option = document.createElement('option');
+                  option.value = mailing.id;
+                  option.textContent = `${mailing.tag}`;
+                  select.appendChild(option);
+               });
             }
          } catch (error) {
             console.error('Ошибка загрузки рассылок:', error);
          }
       }
 
-      // Отправка рассылки выбранным сотрудникам
+      //отправка рассылки выбранным сотрудникам
       async function sendMailingToSelectedEmployees() {
          const mailingId = document.getElementById('mailingSelect').value;
          const selectedEmployees = getSelectedEmployees();
-
-         console.log("mailingId:", mailingId, typeof mailingId);
-         console.log("selectedEmployees:", selectedEmployees);
 
          if (!mailingId) {
             alert('Пожалуйста, выберите рассылку');
@@ -510,30 +510,24 @@ document.addEventListener('DOMContentLoaded', function() {
          
          const sendBtn = document.getElementById('sendSelectedMailing');
          sendBtn.disabled = true;
-         // Подготавливаем данные
+         //подготавливаем данные: айди рассылки и айди выбранных сотрудников
          const requestData = {
-               mailing_id: parseInt(mailingId),
-               employee_ids: selectedEmployees.map(emp => parseInt(emp.id))
+            mailing_id: parseInt(mailingId),
+            employee_ids: selectedEmployees.map(emp => parseInt(emp.id))
          };
 
-         console.log('Отправка на URL:', SEND_MAILINGS_URL);
-         console.log('Данные для отправки:', requestData);
-         console.log("CSRF токен:", getCookie('csrftoken') ? "ЕСТЬ" : "ОТСУТСТВУЕТ!");
-
          const response = await fetch(SEND_MAILINGS_URL, {
-               method: 'POST',
-               headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': getCookie('csrftoken')
-               },
-               body: JSON.stringify(requestData)
+            method: 'POST',
+            headers: {
+               'Content-Type': 'application/json',
+               'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(requestData)
          });
-         console.log("Статус ответа:", response.status);
-         const responseText = await response.text();
-         console.log("Текст ответа:", responseText);
          
+         //выводим результат рассылки
          const result = await response.json();
-         alert(`Рассылка отправлена! Успешно: ${result.success_count}, Ошибок: ${result.error_count}`);
+         alert(`Рассылка отправлена! Успешно: ${result.success_count}, Не отправлено: ${result.error_count}`);
          closeModal();
          sendBtn.disabled = false;
       

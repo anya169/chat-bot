@@ -157,3 +157,7 @@ CORS_ALLOWED_ORIGINS = [
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  
 MEDIA_URL = '/media/' 
+
+LOGIN_URL = '/login/'  # URL для перенаправления неавторизованных пользователей
+LOGIN_REDIRECT_URL = '/curator_account/'  # URL для перенаправления после успешного входа
+LOGOUT_REDIRECT_URL = '/login/' # URL для перенаправления после выхода

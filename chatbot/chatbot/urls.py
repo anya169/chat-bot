@@ -5,10 +5,12 @@ from bot.views import *
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
+from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login_page, name='login_page'),
+    path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', RedirectView.as_view(url='login/', permanent=False)),
     path('login_user/', login_user, name='login_user'), 
     path('curator_account/', curator_account, name='curator_account'),

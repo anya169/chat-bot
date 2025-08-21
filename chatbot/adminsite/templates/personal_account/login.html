@@ -6,7 +6,7 @@
    <title>Вход в систему</title>
    <link rel="stylesheet" href="{% static '/css/common.css' %}">
 </head>
-<body>
+<body onload="clearFormOnLoad()">
    <div class="login">
       {% if messages %}
          {% for message in messages %}
@@ -15,7 +15,7 @@
             </div>
          {% endfor %}
       {% endif %}
-      <form class="login__form" method="post" action="{% url 'login_user' %}">
+      <form id="login-form" class="login__form" method="post" action="{% url 'login_user' %}">
          {% csrf_token %}
          <div class="login__header">Вход</div>
          <input class="login__text" type="text" name="username" placeholder="Введите логин" required>
@@ -24,4 +24,6 @@
       </form>
    </div>
 </body>
-</html>   
+   <script src="{% static 'js/login.js' %}"></script>
+</html> 
+  
