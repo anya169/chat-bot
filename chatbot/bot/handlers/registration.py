@@ -161,13 +161,16 @@ async def capture_curator_information(message: Message, state: FSMContext):
     try:
         branch_id = data.get('branch_id')
         filial = await sync_to_async(Filial.objects.get)(id=branch_id)
+        curator = await sync_to_async(Employee.objects.filter(is_curator=True).first)()
+        curator_login = curator.login
         employee = await sync_to_async(Employee.objects.create)(
             num_tab=data.get('service_number', 'Не указан'),
             name=f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
             filial=filial,
             hire_date=hire_date,
             telegram_id=message.from_user.id,
-            telegram_registration_date=datetime.now().date()
+            telegram_registration_date=datetime.now().date(),
+            curator_login = curator_login
         )
         await asyncio.sleep(short_delay)
     except Exception as e:
