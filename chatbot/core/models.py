@@ -91,7 +91,7 @@ class Answer(models.Model):
    objects = models.Manager()
    
    name = models.CharField(null=True, blank=True, verbose_name='Содержимое ответа')
-   submission_date = models.DurationField(null=True, blank=True, verbose_name='Дата создания')
+   submission_date = models.DateTimeField(null=True, blank=True, auto_now_add=True, verbose_name='Дата создания')
    question = models.ForeignKey(
       'Question',
       on_delete=models.CASCADE

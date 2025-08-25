@@ -8,10 +8,13 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.chat_action import ChatActionSender
 from datetime import date, timedelta
 from bot.keyboards import ready_kb, yes_or_no_kb, question_kb, yes_or_no_maybe_kb # клавиатуры
-
+from aiogram.types import FSInputFile, InputMediaPhoto
+import os
+from create_bot import media_dir 
 from asgiref.sync import sync_to_async
 from aiogram.types import Message
 from core.models import Employee, Answer, Poll
+from keyboards import recommendations_kb
 
 # время, через которое бот отправит сообщение
 short_delay = 1
@@ -43,6 +46,7 @@ class Form_1(StatesGroup):
     question_18 = State()
     question_19 = State()
     result = State()
+    recommendations = State()
     
 after_1_month_router = Router()
 
@@ -60,7 +64,6 @@ async def save_answer(employee, message_text, question_id):
     days_passed = delta.days
     employee_answer = Answer(
         name = message_text,
-        submission_date = timedelta(days = days_passed),
         login_id = employee.id,
         question_id = question_id - 1
     )
@@ -89,12 +92,39 @@ async def finish_poll(message: Message, state: FSMContext, question_id=None):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer(
-            "Спасибо за предоставленную информацию!\n"
-            "Все твои ответы будут внимательно рассмотрены куратором. Если понадобится дополнительная поддержка или обсуждение отдельных моментов, он обязательно свяжется с тобой.",
-            reply_markup = await question_kb(message.from_user.id)
+            "Спасибо за уделённое внимание! 👐\n"
+            "Все твои ответы будут внимательно рассмотрены куратором. Если понадобится дополнительная поддержка или обсуждение отдельных моментов, он обязательно свяжется с тобой ✌"
         )
-    await state.clear()
+    async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
+        await asyncio.sleep(long_delay)
+        await message.answer('В помощь я подготовил для тебя рекомендации, которые помогут тебе эффективнее выстроить свою деятельность и взаимодействие в коллективе!\n'
+                             'Жми «Получить рекомендации»\n'
+                             'До связи! 💬', reply_markup = await recommendations_kb(message.from_user.id))   
 
+    await state.set_state(Form_1.recommendations)
+
+@after_1_month_router.message(F.text == "Получить рекомендации", Form_1.recommendations) # обработка текстового сообщения "Получить рекомендации", с текущим состоянием Form.recommendations
+async def how_are_you(message: Message, state: FSMContext):
+    async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
+        await asyncio.sleep(long_delay)
+        recommendations = [
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations2','1.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations2','2.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations2','3.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations2','4.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations2','5.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations2','6.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations2','7.jpg'))),
+        ]
+        await message.answer_media_group(media=recommendations)
+    await state.clear()    
 
 @after_1_month_router.message(Command('after_1_month'))
 async def start_poll_after_1_month(message: Message, state: FSMContext):

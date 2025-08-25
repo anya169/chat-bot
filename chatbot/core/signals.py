@@ -52,7 +52,7 @@ def handle_new_employee(sender, instance, created, **kwargs):
 
 async def schedule_employee_polls(employee):
     from bot.scheduler import (
-        schedule_poll,
+        schedule_poll_hire,
         send_poll_after_1_month,
         send_poll_after_3_month,
         send_poll_after_6_month,
@@ -68,34 +68,34 @@ async def schedule_employee_polls(employee):
                 
         if days_employed < 30:
             if await is_user_available(employee.telegram_id):
-                schedule_poll(scheduler, employee, 30, send_poll_after_1_month)
-                schedule_poll(scheduler, employee, 90, send_poll_after_3_month)
-                schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
-                schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                schedule_poll_hire(scheduler, employee, 30, send_poll_after_1_month)
+                schedule_poll_hire(scheduler, employee, 90, send_poll_after_3_month)
+                schedule_poll_hire(scheduler, employee, 180, send_poll_after_6_month)
+                schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
         
         # Для работающих 1-3 месяца
         elif 30 <= days_employed < 90:
             if await is_user_available(employee.telegram_id):
-                schedule_poll(scheduler, employee, 90, send_poll_after_3_month)
-                schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
-                schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                schedule_poll_hire(scheduler, employee, 90, send_poll_after_3_month)
+                schedule_poll_hire(scheduler, employee, 180, send_poll_after_6_month)
+                schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
         
         # Для работающих 3-6 месяцев
         elif 90 <= days_employed < 180:
             if await is_user_available(employee.telegram_id):
-                schedule_poll(scheduler, employee, 180, send_poll_after_6_month)
-                schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                schedule_poll_hire(scheduler, employee, 180, send_poll_after_6_month)
+                schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
         
         # Для работающих 6-12 месяцев 
         elif 180 <= days_employed < 365:
             if await is_user_available(employee.telegram_id):
-                schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
                 
         # Для работающих больше года       
         else:
                 
             if await is_user_available(employee.telegram_id):
-                schedule_poll(scheduler, employee, 365, send_poll_after_12_month)
+                schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
                 
     
     logger.info(f"Scheduled polls for employee {employee.id}")

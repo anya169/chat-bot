@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StatesGroup
-from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile
+from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile, InputMediaPhoto
 from aiogram.utils.chat_action import ChatActionSender
 from keyboards import service_number_kb, reviewed_kb, task_kb, done_kb, recommendations_kb, question_kb, branches_kb # клавиатуры
 from create_bot import media_dir # медиа
@@ -27,9 +27,7 @@ long_delay = 1
 
 # состояния бота
 class Form(StatesGroup):
-    surname = State()
     name = State()
-    patronymic = State()
     service_number = State()
     branch = State()
     hire_date = State()
@@ -45,30 +43,16 @@ registration_router = Router()
 @registration_router.message(F.text == 'Рассказать о себе') # обработка текстового сообщения "Рассказать о себе"
 # запуск процесса анкетирования, бот запрашивает фамилию
 # параметры: message - сообщение от пользователя, state - контекст состояния (в последующих функциях такие же параметры)
-async def capture_surname(message: Message, state: FSMContext):
+async def capture_name(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
-        await message.answer('Введи свою фамилию:', reply_markup = ReplyKeyboardRemove())
-    await state.set_state(Form.name)
+        await message.answer('Введи свое имя:', reply_markup = ReplyKeyboardRemove())
+    await state.set_state(Form.service_number)
 
-@registration_router.message(F.text, Form.name) # обработка текстового сообщения (F.text), с текущим состоянием Form.name
-# бот запрашивает имя
-async def capture_name(message: Message, state: FSMContext):
-    surname = message.text
-    if re.search(r'\d', surname):
-        async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
-            await asyncio.sleep(short_delay)
-            await message.answer("Не похоже на фамилию. Попробуйте еще раз:")
-        return
-    await state.update_data(surname = surname)
-    async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
-        await asyncio.sleep(short_delay)
-        await message.answer('Введи своё имя:')
-    await state.set_state(Form.patronymic)
 
-@registration_router.message(F.text, Form.patronymic) # обработка текстового сообщения (F.text), с текущим состоянием Form.patronymic
-# бот запрашивает отчество
-async def capture_patronymic(message: Message, state: FSMContext):
+@registration_router.message(F.text, Form.service_number) # обработка текстового сообщения (F.text), с текущим состоянием Form.service_number
+# бот запрашивает табельный номер
+async def capture_service_number(message: Message, state: FSMContext):
     name = message.text
     if re.search(r'\d', name):
         async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
@@ -76,21 +60,6 @@ async def capture_patronymic(message: Message, state: FSMContext):
             await message.answer("Не похоже на имя. Попробуйте еще раз:")
         return
     await state.update_data(name = name)
-    async with ChatActionSender.typing(bot=bot, chat_id = message.chat.id):
-        await asyncio.sleep(short_delay)
-        await message.answer('Введи своё отчество:')
-    await state.set_state(Form.service_number)
-
-@registration_router.message(F.text, Form.service_number) # обработка текстового сообщения (F.text), с текущим состоянием Form.service_number
-# бот запрашивает табельный номер
-async def capture_service_number(message: Message, state: FSMContext):
-    patronymic = message.text
-    if re.search(r'\d', patronymic):
-        async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
-            await asyncio.sleep(short_delay)
-            await message.answer("Не похоже на отчество. Попробуйте еще раз:")
-        return
-    await state.update_data(patronymic = patronymic)
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         data = await state.get_data()
         msg_text = (f'{data.get("name")}, укажи свой табельный номер:')
@@ -165,7 +134,7 @@ async def capture_curator_information(message: Message, state: FSMContext):
         curator_login = curator.login
         employee = await sync_to_async(Employee.objects.create)(
             num_tab=data.get('service_number', 'Не указан'),
-            name=f"{data.get('surname', '')} {data.get('name', '')} {data.get('patronymic', '')}".strip(),
+            name=f"{data.get('name', '')}",
             filial=filial,
             hire_date=hire_date,
             telegram_id=message.from_user.id,
@@ -183,17 +152,17 @@ async def capture_curator_information(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(long_delay)
         await message.answer("В нашей компании адаптация новых сотрудников — приоритетная задача, "
-                             "ведь люди — наш главный ресурс.\n\n"
+                             "ведь люди — наша главная ценность.\n\n"
                              "В течение трех лет тебя будет поддерживать куратор, "
                              "вместе с которым вы решите все возникающие вопросы и обеспечите "
                              "соблюдение всех нормативных требований регламентирующих документов.\n\n"
-                             "Ты не просто новичок, ты — Молодой Специалист!")
+                             "Ты не просто новичок, ты — Молодой Специалист – БУДУЩЕЕ КОМПАНИИ!")
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(long_delay)
-        await message.answer("Кто такой куратор? Смотри видеоролик ниже!\n\n"
+        await message.answer("Кто такой куратор? Смотри ниже!\n\n"
                              "После ознакомления нажимай кнопку «Ознакомился(ась)».")
-        video_file = FSInputFile(path = os.path.join(media_dir, 'test_video.mp4'))
-        await message.answer_video(video = video_file, reply_markup = await reviewed_kb(message.from_user.id))
+        media_file = FSInputFile(path = os.path.join(media_dir, 'curator.jpg'))
+        await message.answer_photo(photo = media_file, reply_markup = await reviewed_kb(message.from_user.id))
     await state.set_state(Form.do_task)
 
 @registration_router.message(F.text == 'Ознакомился(ась)', Form.do_task) # обработка текстового сообщения "Ознакомился(ась)", с текущим состоянием Form.do_task
@@ -239,6 +208,27 @@ async def capture_welcome_day_information(message: Message, state: FSMContext):
 @registration_router.message(F.text == "Получить рекомендации", Form.recommendations) # обработка текстового сообщения "Получить рекомендации", с текущим состоянием Form.recommendations
 # бот даёт рекомендации
 async def capture_recommendations(message: Message, state: FSMContext):
+    async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
+        await asyncio.sleep(long_delay)
+        recommendations = [
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','1.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','2.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','3.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','4.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','5.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','6.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','7.jpg'))),
+            InputMediaPhoto(
+            media = FSInputFile(path = os.path.join(media_dir, 'recommendations','8.jpg'))),
+        ]
+        await message.answer_media_group(media=recommendations)
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer("Если возникнут вопросы, смело обращайся в чат — мы с куратором оперативно предоставим необходимую помощь.\n\n"

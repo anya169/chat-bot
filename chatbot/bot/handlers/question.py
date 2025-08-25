@@ -68,7 +68,8 @@ async def capture_question(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await asyncio.sleep(short_delay)
         await message.answer(
-            "Отлично, раз вопросов нет, желаю тебе отличной работы!",
+            'Отлично, раз вопросов нет, желаю тебе отличной работы!\n'
+            'Но помни, ты всегда можешь обратиться ко мне или к куратору напрямую.',
             reply_markup=ReplyKeyboardRemove()
         )
     await state.clear()

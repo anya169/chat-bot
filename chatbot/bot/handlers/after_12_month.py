@@ -47,7 +47,6 @@ async def save_answer(employee, message_text, question_id):
    days_passed = delta.days
    employee_answer = Answer(
       name = message_text,
-      submission_date = timedelta(days = days_passed),
       login_id = employee.id,
       question_id = question_id - 1
    )
