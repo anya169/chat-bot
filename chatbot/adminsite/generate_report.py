@@ -4,11 +4,14 @@ from openpyxl.styles import Font
 from .models import *
 from pathlib import Path
 
-def generate_report(cur_curator_login, ids):
+def generate_report(cur_curator_login, ids, poll_names):
    try:
       #получаем куратора и сотрудников
       curator = Employee.objects.filter(login = cur_curator_login).first()
       filtered_employees = Employee.objects.filter(id__in = ids)
+      
+      #получаем опросы
+      filtered_polls = Poll.objects.filter(name__in = poll_names)
       
       #загружаем шаблон
       current_dir = Path(__file__).parent
@@ -19,9 +22,6 @@ def generate_report(cur_curator_login, ids):
       #получаем текущее время и форматируем его
       current_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")
 
-      #получаем все существующие опросы
-      polls = Poll.objects.all()
-
       #заполняем шапку
       ws["A1"] = ws["A1"].value.replace("{{ date }}", current_datetime)
       ws["A2"] = ws["A2"].value.replace("{{ curator_name }}", curator.name)
@@ -30,7 +30,7 @@ def generate_report(cur_curator_login, ids):
       #начинаем выводить информацию с 5 строки
       current_row = 5
       
-      for poll in polls:   
+      for poll in filtered_polls:   
          #сотрудники, прошедшие этот опрос
          current_employees = filtered_employees.filter(
             answer__question__poll=poll

@@ -15,6 +15,24 @@
       <h3>Молодые сотрудники</h3>
       <div class="employees-panel">
          <div class="filter-panel">
+            <div class="dropdown">
+               <button class="dropdown-toggle" type="button" id="pollDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Выберите опросы
+                  <span class="dropdown-arrow">▼</span>
+               </button>
+               <div class="dropdown-menu" id="pollDropdown-menu" aria-labelledby="pollDropdown">
+                  <button class="reset-button">Сбросить все</button>
+                  {% for poll in polls %}
+                  <div class="dropdown-item">
+                     <label class="checkbox-container">
+                        <input type="checkbox" name="poll_filter" value="{{ poll.name }}">
+                        <span class="checkmark"></span>
+                        <span>{{ poll.name }}</span> 
+                     </label>
+                  </div>
+                  {% endfor %}
+               </div>
+            </div>   
             <div class="employee-controls">
                <label class="filter-checkbox">
                   <input type="checkbox" id="filter_own_employees"> 
@@ -25,7 +43,7 @@
                      Выбрать всех
                </label>
                <button id="reset-filters" class="button">Сбросить фильтры</button>
-            </div>
+            
                <button type="button" id="mailing-button" class="send-mailing button">Отправить рассылку</button>
                <button type="button" id="report-button" class="report-button button">Сформировать отчёт</button>
          </div>
@@ -288,7 +306,7 @@
             <div class="modal-content">
                <span class="close">&times;</span>
                <h4>Выберите рассылку для отправки</h4>
-               
+                              
                <div class="modal-body">
                      <select id="mailingSelect" class="form-select">
                         <option value="">-- Выберите рассылку --</option>
@@ -296,11 +314,7 @@
                            <option value="{{ mailing.id }}">{{ mailing.tag }}</option>
                         {% endfor %}
                      </select>
-                     
-                     <div id="mailingPreview" style="margin-top: 20px; display: none;">
-                        <h4>Предпросмотр:</h4>
-                        <div id="previewContent"></div>
-                     </div>
+                     <h4 id="selected-count" class="selected-count"></h4>
                      
                      <div class="modal-buttons" style="margin-top: 20px;">
                         <button id="sendSelectedMailing" class="button" disabled>Отправить выбранным</button>

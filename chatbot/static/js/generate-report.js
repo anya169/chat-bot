@@ -128,6 +128,9 @@ document.addEventListener('DOMContentLoaded', function() {
                dropdownMenu.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
                   checkbox.checked = false;
                });
+               if (e.target.closest('#pollDropdown-menu')) {
+                  return; // не обновляем таблицу при выборе опросов
+               }
                updateEmployees();
             });
          });
@@ -208,6 +211,9 @@ document.addEventListener('DOMContentLoaded', function() {
          
          //обработчики изменений фильтров
          document.addEventListener('change', function(e) {
+            if (e.target.closest('#pollDropdown-menu')) {
+               return; // не обновляем таблицу при выборе опросов
+            } 
             if (  
                e.target.matches('.dropdown-menu input[type="checkbox"]') || //чекбоксы в выпадающем списке
                e.target.matches('.employee-controls input[type="checkbox"]')  //чекбоксы только свои и выбрать всех
@@ -373,10 +379,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
       //отправка данных для отчета
       async function generateReport() {
-            const selectedEmployees = getSelectedEmployees();
+         const selectedEmployees = getSelectedEmployees();
+         const selectedPolls = getSelectedValues('pollDropdown');
          
          if (selectedEmployees.length === 0) {
             alert('Пожалуйста, выберите хотя бы одного сотрудника');
+            return;
+         }
+
+         if (selectedPolls.length === 0) {
+            alert('Пожалуйста, выберите хотя бы один опрос');
             return;
          }
 
@@ -390,7 +402,8 @@ document.addEventListener('DOMContentLoaded', function() {
                      'X-CSRFToken': getCookie('csrftoken'),
                   },
                   body: JSON.stringify({
-                     employees: selectedEmployees
+                     employees: selectedEmployees,
+                     polls: selectedPolls
                   })
             });
 
@@ -455,8 +468,9 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Пожалуйста, выберите хотя бы одного сотрудника');
             return;
          }
-
          document.getElementById('mailingModal').style.display = 'block';
+         const countElement = document.getElementById('selected-count');
+         countElement.textContent = `Выбрано сотрудников: ${selectedEmployees.length}`;
          loadMailings(); //загружаем список рассылок
       }
 

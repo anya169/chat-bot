@@ -138,6 +138,7 @@ def report_page(request):
    structs = Struct.objects.all()
    numtabs = employees.values_list('num_tab', flat=True)
    curators = Employee.objects.filter(is_curator = True)
+   polls = Poll.objects.exclude(name='Опрос через 14 дней')
    data = []
    for emp in employees:
       if (emp.curator_login):
@@ -166,6 +167,7 @@ def report_page(request):
                   'structs': structs, 
                   'numtabs': numtabs,
                   'curators': curators, 
+                  'polls': polls, 
                   'mailings': mailings,
                   'current_user': request.user.username,
                   'page_obj': page_obj,
@@ -177,10 +179,11 @@ def download_report(request):
    try:
       #генерируем отчет 
       data = json.loads(request.body)
-      ids = [str(emp['id']) for emp in data['employees']]
+      emp_ids = [str(emp['id']) for emp in data['employees']]
+      poll_names = data['polls']
       #импортируем функцию
       from .generate_report import generate_report
-      report_filename = generate_report(request.user.username, ids)
+      report_filename = generate_report(request.user.username, emp_ids, poll_names)
       
       if not report_filename or not os.path.exists(report_filename):
          from django.http import HttpResponse

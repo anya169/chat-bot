@@ -268,14 +268,17 @@ a:hover {
    display: none !important;
 }
 
-.filter-panel{
-   display: flex;
-}
+
 .report-button{
    margin-left: 10px;
 }
-.report-button{
-   margin-left: 450px;
+.send-mailing{
+   margin-left: 420px;
+}
+.controls{
+   display: flex;
+   flex-direction: column;
+   width: 100%;
 }
 .employee-controls{
    display: flex;

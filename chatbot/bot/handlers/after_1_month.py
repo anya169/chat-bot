@@ -10,11 +10,11 @@ from datetime import date, timedelta
 from bot.keyboards import ready_kb, yes_or_no_kb, question_kb, yes_or_no_maybe_kb # клавиатуры
 from aiogram.types import FSInputFile, InputMediaPhoto
 import os
-from create_bot import media_dir 
+from bot.create_bot import media_dir 
 from asgiref.sync import sync_to_async
 from aiogram.types import Message
 from core.models import Employee, Answer, Poll
-from keyboards import recommendations_kb
+from bot.keyboards import recommendations_kb
 
 # время, через которое бот отправит сообщение
 short_delay = 1
