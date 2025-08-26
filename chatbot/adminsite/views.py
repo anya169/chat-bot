@@ -14,6 +14,8 @@ from datetime import datetime
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.db.models import Count
+from datetime import datetime, timedelta
+from bot.create_bot import bot
 
 #авторизация
 @csrf_exempt
@@ -200,19 +202,77 @@ def download_report(request):
       return HttpResponse(f"Ошибка: {str(e)}", status=500)
 
 @login_required      
-#информация о сотруднике
 def employee(request, employee_id):
    employee = Employee.objects.filter(id=employee_id).first()
-   #все его пройденные опросы
-   polls = Poll.objects.filter(question__answer__login = employee.id).distinct()
-  
+   
+   weekpoll = Poll.objects.filter(name="Опрос через 14 дней").first()
+   
+   #получаем ответы сотрудника на еженедельный опрос
+   week_answers = Answer.objects.filter(
+      question__poll=weekpoll,
+      login=employee
+   ).select_related('question')
+   
+   weekly_answers_data = []
+   
+   if employee.hire_date and employee.telegram_registration_date:
+      hire_date = employee.hire_date
+      telegram_date = employee.telegram_registration_date
+      
+      #определяем границы периодов
+      fourteen_days_date = telegram_date + timedelta(days=14)
+      first_month_date = hire_date + timedelta(days=30)
+      third_month_date = hire_date + timedelta(days=90)
+      sixth_month_date = hire_date + timedelta(days=180)
+      
+      for answer in week_answers:
+         submission_date = answer.submission_date.date()
+         
+         #определяем период
+         if submission_date == fourteen_days_date:
+            period = 'Через 14 дней после регистрации'
+         elif first_month_date <= submission_date < third_month_date:
+            period = 'Между 1 и 3 месяцами'
+         elif third_month_date <= submission_date < sixth_month_date:
+            period = 'Между 3 и 6 месяцами'
+         else:
+            continue  
+         
+         weekly_answers_data.append({
+            'period': period,
+            'date': submission_date,
+            'question': answer.question,
+            'answer': answer
+         })
+   
+   #группируем данные 
+   grouped_weekly_data = {}
+   for item in weekly_answers_data:
+      period = item['period']
+      date_str = item['date'].strftime('%Y-%m-%d')
+      
+      if period not in grouped_weekly_data:
+         grouped_weekly_data[period] = {}
+      
+      if date_str not in grouped_weekly_data[period]:
+         grouped_weekly_data[period][date_str] = {
+            'date': item['date'],
+            'answers': {}
+         }
+      
+      grouped_weekly_data[period][date_str]['answers'][str(item['question'].id)] = item['answer']
+   
+   #все остальные опросы кроме еженедельного
+   other_polls = Poll.objects.filter(
+      question__answer__login=employee.id
+   ).exclude(name='Опрос через 14 дней').distinct()
+   
    polls_data = []
-   for poll in polls:
+   for poll in other_polls:
       questions_answers = []
       poll_questions = Question.objects.filter(poll_id=poll.id)
       for poll_question in poll_questions:
          poll_answer = Answer.objects.filter(question_id=poll_question.id, login=employee).first()
-         #cохраняем пару (вопрос, ответ)
          questions_answers.append({
             'question': poll_question,
             'answer': poll_answer
@@ -221,16 +281,31 @@ def employee(request, employee_id):
          'poll': poll,
          'questions_answers': questions_answers
       })
-   count = polls.count()
+   
+   count = other_polls.count() + (1 if week_answers.exists() else 0)
+   
    return render(request, 'personal_account/employee.html', {
       'employee': employee,
       'polls_data': polls_data,
-      'count': count
-   })   
+      'count': count,
+      'weekpoll': weekpoll,
+      'grouped_weekly_data': grouped_weekly_data,
+      'weekly_questions': weekpoll.question_set.all(),
+      'has_weekly_answers': bool(weekly_answers_data)
+   })
 
 @login_required   
 #статистика
 def statistic(request):
+   from bot.config import get_blocked_users
+   blocked = get_blocked_users()
+   blockers = Employee.objects.filter(telegram_id__in=blocked)
+   count = Employee.objects.all().count()
+   return render(request, 'statistic/statistic.html', {'blockers': blockers, 'count': count})
+ 
+@login_required   
+#статистика старое
+def statistic1(request):
    employees = Employee.objects.filter(is_curator=False)
    filials = Filial.objects.all()
    #сотрудники, воспользовавшиеся ботом
@@ -271,7 +346,7 @@ def statistic(request):
          bot_chart_filial_data['percentages'].append(percentage)
          
   
-   return render(request, 'statistic/statistic.html', {
+   return render(request, 'statistic/statistic1.html', {
       'employee': employees,
       'bot_chart_data': bot_chart_data,
       'bot_chart_filial_data': bot_chart_filial_data,

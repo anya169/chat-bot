@@ -12,6 +12,8 @@
    {% endblock %}
    <main class="content">
       <h3>Информация о сотруднике</h3>
+      
+      <!-- Информация о сотруднике -->
       <div class="employees-panel">
          <div class="account">
             <span class="employee__info">{{ employee.name }}</span>
@@ -24,7 +26,60 @@
             <div class="employee__info">Количество пройденных опросов: {{ count|default:"-" }}</div> 
          </div>
       </div>
+
       <h3>Пройденные опросы</h3>
+      
+      <!-- Еженедельный опрос -->
+      {% if has_weekly_answers %}
+      <div class="employees-panel">
+         <h4>Еженедельный опрос</h4>
+         <table class="weekly-poll-table employee-table">
+            <thead>
+               <tr>
+                  <th></th>
+                  {% for question in weekly_questions %}
+                  <th>{{ question.name }}</th>
+                  {% endfor %}
+               </tr>
+            </thead>
+            <tbody>
+               {% for period, dates in grouped_weekly_data.items %}
+               <!-- Заголовок периода -->
+               <tr>
+                  <td class="period-header" colspan="{{ weekly_questions.count|add:1 }}">
+                     {{ period }}
+                  </td>
+               </tr>
+               
+               {% for date_str, date_data in dates.items %}
+               <!-- Заголовок даты -->
+               <tr>
+                  <td class="date-header" colspan="{{ weekly_questions.count|add:1 }}">
+                     {{ date_data.date|date:"d.m.Y" }}
+                  </td>
+               </tr>
+               
+               <!-- Ответы для этой даты -->
+               <tr>
+                  <td class="question-column">Ответы</td>
+                  {% for question in weekly_questions %}
+                  <td>
+                     {% for answer_key, answer_value in date_data.answers.items %}
+                        {% if answer_key == question.id|stringformat:"s" %}
+                           {{ answer_value.name|default:"-" }}
+                        {% endif %}
+                     {% endfor %}
+                  </td>
+                  {% endfor %}
+               </tr>
+               {% endfor %}
+               {% endfor %}
+            </tbody>
+         </table>
+      </div>
+      {% endif %}
+
+      <!-- Остальные опросы -->
       <div class="employees-panel">
          <div class="polls-tables">
             {% for poll_data in polls_data %}
@@ -40,7 +95,7 @@
                      {% for questionanswer in poll_data.questions_answers %}
                         <tr>
                            <td>{{ questionanswer.question.name }}</td>
-                           <td>{{ questionanswer.answer.name }}</td> 
+                           <td>{{ questionanswer.answer.name|default:"-" }}</td> 
                         </tr> 
                      {% endfor %}
                   </tbody>
@@ -48,7 +103,7 @@
             {% empty %}
                <div>Не пройдено ни одного опроса</div>
             {% endfor %}
-            </div>
+         </div>
       </div>   
    </main>
 </body>

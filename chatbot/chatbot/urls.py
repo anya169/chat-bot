@@ -18,6 +18,7 @@ urlpatterns = [
     path('chat/<int:employee_id>/', chat_with_employee, name='chat_with_employee'),
     path('report/', report_page, name='report_page'),
     path('download/', download_report, name='download_report'),
+    path('statistic1/', statistic1, name='statistic1'),
     path('statistic/', statistic, name='statistic'),
     path('employee/<int:employee_id>/', employee, name='employee'),
     path('filter_employees/', filter_employees, name='filter_employees'),

@@ -15,6 +15,7 @@ from bot.keyboards import ready_kb
 import logging
 from channels.db import database_sync_to_async
 
+
 async def has_completed_poll(employee_id, poll_name):
     try:
         poll = await sync_to_async(Poll.objects.get, thread_sensitive=True)(name=poll_name)
@@ -79,6 +80,8 @@ async def send_poll_after_14_days(employee_id):
             logger.info(f"Опрос через 14 дней отправлен сотруднику {employee_id}")
 
         except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
             logger.error(f"Ошибка при отправке опроса через 14 дней сотруднику {employee_id}: {e}")
 
 async def send_poll_after_1_month(employee_id):
@@ -106,6 +109,8 @@ async def send_poll_after_1_month(employee_id):
             logger.info(f"Опрос через 1 месяц отправлен сотруднику {employee_id}")
 
         except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
             logger.error(f"Ошибка при отправке опроса через 1 месяц сотруднику {employee_id}: {e}")
 
 async def send_poll_after_3_month(employee_id):
@@ -136,6 +141,8 @@ async def send_poll_after_3_month(employee_id):
             )
             logger.info(f"Опрос через 3 месяца отправлен сотруднику {employee_id}")
         except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
             logger.error(f"Ошибка при отправке опроса через 3 месяца сотруднику {employee_id}: {e}")
 
 async def send_poll_after_6_month(employee_id):
@@ -165,6 +172,8 @@ async def send_poll_after_6_month(employee_id):
             )
             logger.info(f"Опрос через 6 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
             logger.error(f"Ошибка при отправке опроса через 6 месяцев сотруднику {employee_id}: {e}")
             
 async def send_poll_after_12_month(employee_id):
@@ -194,6 +203,8 @@ async def send_poll_after_12_month(employee_id):
             
             logger.info(f"Опрос через 12 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
             logger.error(f"Ошибка при отправке опроса через 12 месяцев сотруднику {employee_id}: {e}")            
 
 def schedule_poll_hire(scheduler, employee, days_delta, send_func):
