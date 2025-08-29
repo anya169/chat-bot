@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'adminsite.apps.AdminsiteConfig',
     'core.apps.CoreConfig',
     'channels',
-    'bot.apps.BotConfig'
+    'bot.apps.BotConfig',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
