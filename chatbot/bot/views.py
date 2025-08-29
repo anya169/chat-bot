@@ -113,6 +113,8 @@ async def send_mailing_async(mailing, attachments, employees):
          
       except Exception as e:
          print(f"Ошибка при отправке сотруднику {employee.telegram_id}: {e}")
+         from bot.config import add_to_blocked
+         add_to_blocked(employee.telegram_id)
          error_count += 1
          continue
    

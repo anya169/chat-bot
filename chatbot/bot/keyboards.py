@@ -1,13 +1,13 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from bot.create_bot import get_curators_telegram_ids
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-import os
-import django
+from pathlib import Path
 import sys
 from asgiref.sync import sync_to_async
-import asyncio
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
 
 async def is_curator():
     curators = await get_curators_telegram_ids()
