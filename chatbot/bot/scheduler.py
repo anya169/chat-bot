@@ -276,6 +276,14 @@ def schedule_weekly_polls(scheduler, employee, start_date, times, send_func):
     try:
         for week_number in range(1, times + 1):  # количество недель
             send_date = start_date + timedelta(weeks=week_number - 1)
+            #получаем, в какой день недели расчитана дата отправки
+            day_of_week = send_date.weekday()
+            #если это понедельник - четверг, то прибавляем дни до пятницы
+            if  0 <= day_of_week <= 3:
+                send_date += timedelta(days = 4 - day_of_week)
+            #если это суббота - воскресенье, то вычитаем дни до пятницы    
+            elif  5 <= day_of_week <= 6:
+                send_date -= timedelta(days = day_of_week - 4)    
             send_time = datetime.combine(
                 send_date,
                 datetime.strptime("10:00", "%H:%M").time()
