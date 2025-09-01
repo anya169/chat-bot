@@ -5,6 +5,8 @@
 <head>
    <title>Формирование отчета</title>
    <link rel="stylesheet" href="{% static '/css/common.css' %}?v={% now 'U' %}">
+   <link rel="stylesheet" href="{% static '/css/generate-report.css' %}?v={% now 'U' %}">
+   <link rel="stylesheet" href="{% static '/css/tables.css' %}">
    <link rel="stylesheet" href="{% static '/css/air-datepicker.css' %}?v={% now 'U' %}">
 </head>
 <body class='layout' data-username='{{ request.user.username|default:"anonymous"|escapejs }}'>

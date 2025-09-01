@@ -1,0 +1,30 @@
+.employee-table {
+   width: 1250px;
+   border-collapse: collapse;
+   margin: 20px 0;
+   border: none;
+}
+
+.employee-table th, .employee-table td {
+   padding: 8px 12px;
+   text-align: center;
+   color:black;
+   border: 1px solid #0078C1; 
+}
+
+.employee-table th {
+   background-color: #FFFFFF;
+   font-weight: bold;
+   justify-content: center;
+}
+
+.employee-table tr:nth-child(odd) {
+   background-color: rgba(0, 120, 193, 0.25);
+   color: #FFFFFF;
+}
+
+.input[type="checkbox"] {
+   width: 18px;
+   height: 18px;
+   background-color: #0078C1;
+}

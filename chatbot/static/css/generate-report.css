@@ -1,0 +1,159 @@
+
+.report-button{
+   margin-left: 10px;
+}
+.send-mailing{
+   margin-left: 420px;
+}
+.controls{
+   display: flex;
+   flex-direction: column;
+   width: 100%;
+}
+.employee-controls{
+   display: flex;
+   gap: 15px;
+}
+.dropdown {
+   font-family: 'Helios', sans-serif;
+   font-size: 16px;
+   position: relative;
+   display: inline-block;
+   margin: 10px 0;
+}
+
+.dropdown-toggle {
+   padding: 8px 16px;
+   cursor: pointer;
+   border: none;
+   background-color: #FFFFFF;
+   font-weight: bold;
+   font-family: 'Helios', sans-serif;
+   font-size: 16px;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 200px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdown-menu.show {
+  display: flex;
+  flex-direction: column;
+  align-content: flex-start;
+}
+
+.dropdown-item{
+   font-weight: normal;
+   align-self: flex-start;
+}
+.personal{
+   color: black;
+}
+
+.search{
+   font-family: "Helios", sans-serif;
+   box-sizing: border-box;
+   background-position: 14px 14px;
+   background-repeat: no-repeat;
+   padding: 14px 20px 12px 45px;
+   border: none;
+   border-bottom: 1px solid #818181;
+}
+
+.reset-button{
+   font-family: "Helios", sans-serif;
+}
+
+.dateInput{
+   display: none;
+}
+.air-datepicker {
+  z-index: 1000 !important; 
+  position: absolute;
+}
+
+.pagination {
+   display: flex;
+   justify-content: center;
+   margin: 20px 0;
+   gap: 5px;
+}
+.page-item {
+   list-style: none;
+}
+.page-link {
+   padding: 8px 12px;
+   border: 1px solid #ddd;
+   text-decoration: none;
+   color: #0078C1;
+   border-radius: 4px;
+}
+.page-link:hover {
+   background-color: #f0f0f0;
+}
+.current {
+   padding: 8px 12px;
+   background-color: #0078C1;
+   color: white;
+   border: 1px solid #0078C1;
+   border-radius: 4px;
+}
+.disabled {
+   color: #6c757d;
+   pointer-events: none;
+}
+
+
+.modal {
+   position: fixed;
+   z-index: 1000;
+   left: 0;
+   top: 0;
+   width: 100%;
+   height: 100%;
+   background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+   background-color: #fefefe;
+   margin: 10% auto;
+   padding: 20px;
+   border: 1px solid #0078C1;
+   width: 50%;
+   border-radius: 8px;
+}
+
+.close {
+   color: #0078C1;
+   float: right;
+   font-size: 28px;
+   font-weight: bold;
+   cursor: pointer;
+}
+
+.close:hover {
+   color: #0078C1;
+}
+
+.form-select {
+   width: 100%;
+   padding: 10px;
+   margin-bottom: 15px;
+   border: 1px solid #ddd;
+   border-radius: 4px;
+}
+
+.button-secondary {
+   background-color: #6c757d;
+}
+
+.button-secondary:hover {
+   background-color: #5a6268;
+}

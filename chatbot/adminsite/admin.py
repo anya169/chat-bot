@@ -30,27 +30,27 @@ class EmployeeAdmin(admin.ModelAdmin):
          loop = asyncio.new_event_loop()
          asyncio.set_event_loop(loop)
          try:
-               result = loop.run_until_complete(async_send_wrapper(employee_id))
-               return result
+            result = loop.run_until_complete(async_send_wrapper(employee_id))
+            return result
          except Exception as e:
-               logger.error(f"Ошибка в синхронной обёртке: {str(e)}", exc_info=True)
-               return False
+            logger.error(f"Ошибка в синхронной обёртке: {str(e)}", exc_info=True)
+            return False
          finally:
-               loop.close()
+            loop.close()
 
       for employee in queryset:
          if not employee.telegram_id:
-               messages.warning(request, f"Нет telegram_id у {employee.name}")
-               continue
+            messages.warning(request, f"Нет telegram_id у {employee.name}")
+            continue
                
          try:
-               result = sync_send_wrapper(employee.id)
-               if result is True:
-                  messages.success(request, f"Успешно отправлено: {employee.name}")
-               else:
-                  messages.error(request, f"Не удалось отправить: {employee.name}")
+            result = sync_send_wrapper(employee.id)
+            if result is True:
+               messages.success(request, f"Успешно отправлено: {employee.name}")
+            else:
+               messages.error(request, f"Не удалось отправить: {employee.name}")
          except Exception as e:
-               messages.error(request, f"Критическая ошибка для {employee.name}: {str(e)}")
+            messages.error(request, f"Критическая ошибка для {employee.name}: {str(e)}")
                
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):   
@@ -88,12 +88,12 @@ class MailingAdmin(admin.ModelAdmin):
       attachments = obj.attachments.all()  # Используем related_name='attachments'
       if attachments:
          return format_html(
-               "<ul>{}</ul>".format(
-                  "".join([
-                     f"<li>{attachment.file_name or attachment.file.name}</li>" 
-                     for attachment in attachments
-                  ])
-               )
+            "<ul>{}</ul>".format(
+               "".join([
+                  f"<li>{attachment.file_name or attachment.file.name}</li>" 
+                  for attachment in attachments
+               ])
+            )
          )
       return "-"
    get_attachments_list.short_description = 'Вложения'

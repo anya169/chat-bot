@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import logout
 from chatbot import settings
 from .models import *
@@ -15,7 +14,6 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from django.db.models import Count
 from datetime import datetime, timedelta
-from bot.create_bot import bot
 
 #авторизация
 @csrf_exempt
@@ -43,8 +41,8 @@ def login_user(request):
                return redirect('login_page')  
             
          except Employee.DoesNotExist:
-               messages.error(request, 'Профиль сотрудника не найден')
-               return redirect('login_page')
+            messages.error(request, 'Профиль сотрудника не найден')
+            return redirect('login_page')
       else:
          messages.error(request, 'Неверный логин или пароль')
          return redirect('login_page')  

@@ -2,7 +2,7 @@
 function clearFormOnLoad() {
    const urlParams = new URLSearchParams(window.location.search);
    if (urlParams.has('logout')) {
-         document.getElementById('login-form').reset();
+      document.getElementById('login-form').reset();
    }
 }
 
