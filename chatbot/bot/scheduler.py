@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 import sys
-from bot.create_bot import bot, dp 
+from create_bot import bot, dp 
 from core.models import *
 from asgiref.sync import sync_to_async
 from bot.handlers.after_1_month import Form_1
@@ -264,7 +264,7 @@ def schedule_poll_tg(scheduler, employee, days_delta, send_func):
                 send_func,
                 trigger=DateTrigger(run_date=datetime.now()),
                 args=[employee.id],
-                id=f"poll_immediate_{employee.id}",
+                id=f"poll_immediate_{employee.id}_{days_delta}_days",
                 replace_existing=True
             )
             logger.info(f"Отправлен немедленный опрос для сотрудника {employee.id}")
@@ -343,7 +343,7 @@ async def schedule_polls():
                 
                 
                 # Для новых сотрудников (<1 месяца) - планируем опросы
-                if days_employed < 30:
+                if days_employed <= 30:
                     if await is_user_available(employee.telegram_id):
                         schedule_poll_hire(scheduler, employee, 30, send_poll_after_1_month)
                         schedule_poll_hire(scheduler, employee, 90, send_poll_after_3_month)
@@ -354,7 +354,7 @@ async def schedule_polls():
                         schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_3_to_6, 12, send_poll_after_14_days)
                 
                 # Для работающих 1-3 месяца
-                elif 30 <= days_employed < 90:
+                elif 30 < days_employed < 90:
                     if await is_user_available(employee.telegram_id):
                         schedule_poll_hire(scheduler, employee, 90, send_poll_after_3_month)
                         schedule_poll_hire(scheduler, employee, 180, send_poll_after_6_month)

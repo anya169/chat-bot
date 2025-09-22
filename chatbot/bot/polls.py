@@ -30,14 +30,20 @@ async def initialize_poll_data():
         name = "Опрос через 12 месяцев",
         submission_date = timedelta(days = 365)
     )
+    poll_after_14_days = Poll(
+        name = "Опрос через 14 дней",
+        submission_date = timedelta(days = 14)
+    )
     await sync_to_async(poll_after_1_month.save)()
     await sync_to_async(poll_after_3_month.save)()
     await sync_to_async(poll_after_6_month.save)()
     await sync_to_async(poll_after_12_month.save)()
+    await sync_to_async(poll_after_14_days.save)()
     poll_after_1_month = await sync_to_async(Poll.objects.get)(name = "Опрос через месяц")
     poll_after_3_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 3 месяца")
     poll_after_6_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 6 месяцев")
     poll_after_12_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 12 месяцев")
+    poll_after_14_days = await sync_to_async(Poll.objects.get)(name = "Опрос через 14 дней")
     questions_for_poll_1_data = [
         "Как дела?", 
         "Удалось пройти трек по адаптации в ГИД?",
@@ -91,6 +97,11 @@ async def initialize_poll_data():
         "Устраивает ли тебя нынешняя организация твоего рабочего места? Комфортно ли тебе там находиться и продуктивно работать?",
         "Может есть волнующие моменты, которые тебя беспокоят?"
     ]
+    questions_for_poll_14_data = [
+        "Как дела?",
+        "Как обстоят дела с организацией твоей производственной деятельности? Опиши в нескольких предложениях",
+        "Возможно у тебя появились вопросы?"
+    ]
     for question_text in questions_for_poll_1_data:
         question = Question(
             name = question_text,
@@ -113,5 +124,11 @@ async def initialize_poll_data():
         question = Question(
             name=question_text,
             poll_id = poll_after_12_month.id
+        )
+        await sync_to_async(question.save)()
+    for question_text in questions_for_poll_14_data:
+        question = Question(
+            name=question_text,
+            poll_id = poll_after_14_days.id
         )
         await sync_to_async(question.save)()
