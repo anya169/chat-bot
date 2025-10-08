@@ -10,6 +10,10 @@ from bot.handlers.after_1_month import Form_1
 from bot.handlers.after_3_month import Form_3
 from bot.handlers.after_6_month import Form_6
 from bot.handlers.after_12_month import Form_12
+from bot.handlers.after_18_month import Form_18
+from bot.handlers.after_24_month import Form_24
+from bot.handlers.after_30_month import Form_30
+from bot.handlers.after_36_month import Form_36
 from bot.handlers.after_14_days import Form_14
 from bot.keyboards import ready_kb
 import logging
@@ -60,7 +64,7 @@ async def send_poll_after_14_days(employee_id):
                 chat_id=employee.telegram_id,
                 text='Приветствую тебя, молодой специалист! 👋\n\n'
                            'Это я – Газоптикум, твой личный цифровой помощник! \n'
-                           'Мне интересно, как у тебя дела?\n'
+                           'Расскажи, как проходят первые рабочие дни?\n'
                            'Отметь в опросе ниже ⬇')
             
             await bot.send_poll(
@@ -74,7 +78,7 @@ async def send_poll_after_14_days(employee_id):
             await state.update_data(poll_options=["Все отлично! 👍", "Все хорошо! 😊", "Средне", "Хотелось бы, чтоб было лучше …🙁", "Все плохо! 😢"])
             await bot.send_message(
                 chat_id=employee.telegram_id,
-                text="Как обстоят дела с организацией твоей производственной деятельности? Опиши в нескольких предложениях ⬇"
+                text="Как обстоят дела с организацией твоей производственной деятельности? Возможно что-то идет не так, как хотелось бы? Опиши в нескольких предложениях ⬇"
             )
             await state.set_state(Form_14.question_3)
             logger.info(f"Опрос через 14 дней отправлен сотруднику {employee_id}")
@@ -100,8 +104,8 @@ async def send_poll_after_1_month(employee_id):
             
             await bot.send_message(
                 chat_id=employee.telegram_id,
-                text='Привет!\nПоздравляем с первым месяцем в команде!\n\n'
-                    'Чтобы оценить, как идут дела, предлагаем пройти опрос по чек-листу.\n\n'
+                text='Привет!\nПоздравляю тебя с успешным стартом в нашей команде — прошёл уже целый месяц! 😊\n\n'
+                    'Для того, чтобы мы могли вместе увидеть, насколько успешно идёт процесс адаптации, предлагаю заполнить небольшой опрос по чек-листу обратной связи.\n\n'
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
                 reply_markup=await ready_kb(employee.telegram_id)
             )
@@ -133,7 +137,7 @@ async def send_poll_after_3_month(employee_id):
                 chat_id=employee.telegram_id,
                 text='Привет!\n\n'
                     'Три месяца в компании — отличный результат!\n\n'
-                    'Твой адаптационный период подходит к концу, и мне важно узнать, '
+                    'Первая ступень твоего адаптационного периода подходит к концу, и мне важно узнать, '
                     'как у тебя идут дела. Поделись своими впечатлениями, пожалуйста, '
                     'ответив на предложенные вопросы.\n\n'
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
@@ -164,9 +168,9 @@ async def send_poll_after_6_month(employee_id):
             await bot.send_message(
                 chat_id=employee.telegram_id,
                 text='Привет!\n\n'
-                    'Поздравляю с достижением экватора трудового стажа в нашей компании! '
-                    'За этот год ты, несомненно, приобрел немало знаний и опыта.\n\n'
-                    'Поделишься, как продвигается твоя работа? Ответы на наши вопросы помогут нам лучше понять твою ситуацию.\n\n'
+                    'Поздравляю с успешным завершением первого трудового года в нашем дружном коллективе! ✨'
+                    'Прошедший год показал, насколько значима твоя роль в команде. Ты активно участвовал в развитии компании, проявил высокий уровень профессионализма и компетенции.\n\n'
+                    'Предлагаю поделиться своими ощущениями и эмоциями от первого рабочего года? Рассказать о главных профессиональных достижениях, которыми особенно гордишься и помнишь. И конечно же, предложи свои идеи, как нам сделать сотрудничество еще продуктивнее и приятнее! 🙂\n\n'
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
                 reply_markup=await ready_kb(employee.telegram_id)
             )
@@ -206,6 +210,128 @@ async def send_poll_after_12_month(employee_id):
             from bot.config import add_to_blocked
             add_to_blocked(employee.telegram_id)
             logger.error(f"Ошибка при отправке опроса через 12 месяцев сотруднику {employee_id}: {e}")            
+
+async def send_poll_after_18_month(employee_id):
+    """Отправляет опрос через 18 месяцев после трудоустройства"""
+    if (not await has_completed_poll(employee_id, "Опрос через 18 месяцев")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 18 месяцев отложен")
+                return
+
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_18.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\n\n'
+                           'Поздравляю с прохождением половины пути в качестве молодого специалиста нашей команды! 🚀 \n\n'
+                           'Позади уже немало ценной практики, впереди ждут новые горизонты и профессиональные вершины! \n'
+                           'Поделись своим мнением о сегодняшних рабочих процессах и предложи идеи, как сделать твою работу еще интересней и продуктивней.\n'
+                           'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = await ready_kb(employee.telegram_id))
+            
+            logger.info(f"Опрос через 18 месяцев отправлен сотруднику {employee_id}")
+        except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
+            logger.error(f"Ошибка при отправке опроса через 18 месяцев сотруднику {employee_id}: {e}")            
+
+async def send_poll_after_24_month(employee_id):
+    """Отправляет опрос через 24 месяца после трудоустройства"""
+    if (not await has_completed_poll(employee_id, "Опрос через 24 месяца")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 24 месяца отложен")
+                return
+
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_24.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\n\n'
+                           'Поздравляю с двухлетием в нашей команде! 🎯\n\n'
+                           'Прошло уже целых два года — ты прошёл огромный путь, доказал свою преданность профессии и сделал значительный вклад в развитие компании. Впереди ждут новые рубежи и захватывающие испытания!\n'
+                           'Поделись мыслями о нынешней работе, расскажи, как видишь своё дальнейшее развитие и как можно сделать рабочие процессы ещё более интересными и эффективными.\n'
+                           'Готов(а) к обсуждению и новому этапу развития? Жми кнопку «Готов(а)»!', reply_markup = await ready_kb(employee.telegram_id))
+            
+            logger.info(f"Опрос через 24 месяца отправлен сотруднику {employee_id}")
+        except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
+            logger.error(f"Ошибка при отправке опроса через 24 месяца сотруднику {employee_id}: {e}")            
+
+async def send_poll_after_30_month(employee_id):
+    """Отправляет опрос через 30 месяцев после трудоустройства"""
+    if (not await has_completed_poll(employee_id, "Опрос через 30 месяцев")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 30 месяцев отложен")
+                return
+
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_30.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\n\n'
+                           'Поздравляю с преодолением важной отметки — 2,5 года работы в нашем дружном коллективе! 🌟\n\n'
+                           'Уже многое успел, впереди — ещё больше интересного. Расскажи, как тебе работается сейчас и какие идеи есть для улучшений.\n\n'
+                           'Готов(а)?', reply_markup = await ready_kb(employee.telegram_id))
+            
+            logger.info(f"Опрос через 30 месяцев отправлен сотруднику {employee_id}")
+        except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
+            logger.error(f"Ошибка при отправке опроса через 30 месяцев сотруднику {employee_id}: {e}")            
+
+async def send_poll_after_36_month(employee_id):
+    """Отправляет опрос через 36 месяцев после трудоустройства"""
+    if (not await has_completed_poll(employee_id, "Опрос через 36 месяцев")): #если сотрудник еще не проходил опрос
+        try:
+            employee = await sync_to_async(Employee.objects.get, thread_sensitive=True)(id=employee_id)
+            if not await is_user_available(employee.telegram_id):
+                logger.info(f"Пользователь {employee.telegram_id} занят, опрос через 36 месяцев отложен")
+                return
+
+            state = dp.fsm.get_context(
+                bot=bot,
+                chat_id=employee.telegram_id,
+                user_id=employee.telegram_id
+            )
+            await state.set_state(Form_36.how_are_you)
+            
+            await bot.send_message(
+                chat_id=employee.telegram_id,
+                text='Привет!\n\n'
+                         'Поздравляю с успешными тремя годами работы в нашей команде! 🎉\n\n'
+                           'Уверен, что успехов достигнуто не мало!\n'
+                           'Но сегодня отличный повод вспомнить пройденный путь и обсудить дальнейшие планы.\n'
+                           'Давай поговорим о том, как тебе работается сейчас, какие успехи достиг, и какие предложения у тебя есть для повышения эффективности и интереса в твоей работе!\n'
+                           'Что скажешь? Нажми «Готов»!', reply_markup = await ready_kb(employee.telegram_id))
+            
+            logger.info(f"Опрос через 36 месяцев отправлен сотруднику {employee_id}")
+        except Exception as e:
+            from bot.config import add_to_blocked
+            add_to_blocked(employee.telegram_id)
+            logger.error(f"Ошибка при отправке опроса через 36 месяцев сотруднику {employee_id}: {e}")            
+
+
 
 def schedule_poll_hire(scheduler, employee, days_delta, send_func):
     """Планирует отправку опроса на указанное количество дней после hire_date"""
@@ -271,11 +397,11 @@ def schedule_poll_tg(scheduler, employee, days_delta, send_func):
     except Exception as e:
         logger.error(f"Ошибка при планировании опроса для сотрудника {employee.id}: {e}")
 
-def schedule_weekly_polls(scheduler, employee, start_date, times, send_func):
+def schedule_weekly_polls(scheduler, employee, start_date, times, num, send_func):
     """Планирует опросы с интервалом в неделю начиная с start_date"""
     try:
         for week_number in range(1, times + 1):  # количество недель
-            send_date = start_date + timedelta(weeks=week_number - 1)
+            send_date = start_date + timedelta(weeks=(week_number - 1)*num)
             #получаем, в какой день недели расчитана дата отправки
             day_of_week = send_date.weekday()
             #если это понедельник - четверг, то прибавляем дни до пятницы
@@ -337,9 +463,14 @@ async def schedule_polls():
                 days_employed = (today - employee.hire_date).days
                 logger.info(f"Сотрудник {employee.id}, работает {days_employed} дней")
                 
-                # Рассчитываем дату начала недельных опросов: hire_date + кол-во месяцев + 1 неделя
-                start_weekly_polls_date_from_1_to_3 = employee.hire_date + timedelta(days=37)  # 30 дней + 7 дней
-                start_weekly_polls_date_from_3_to_6 = employee.hire_date + timedelta(days=97)  # 90 дней + 7 дней
+                # Рассчитываем дату начала недельных опросов: hire_date + кол-во месяцев + недели
+                start_weekly_polls_date_from_1_to_3 = employee.hire_date + timedelta(days=44)  # 30 дней + 14 дней
+                start_weekly_polls_date_from_3_to_6 = employee.hire_date + timedelta(days=121)  # 90 дней + 21 день
+                start_weekly_polls_date_from_6_to_12 = employee.hire_date + timedelta(days=210)  # 180 дней + 30 дней
+                start_weekly_polls_date_from_12_to_18 = employee.hire_date + timedelta(days=395)  #365 дней + 30 дней
+                start_weekly_polls_date_from_18_to_24 = employee.hire_date + timedelta(days=465)  #445 дней + 30 дней
+                start_weekly_polls_date_from_24_to_30 = employee.hire_date + timedelta(days=760)  #730 дней + 30 дней
+                start_weekly_polls_date_from_30_to_36 = employee.hire_date + timedelta(days=880)  #850 дней + 30 дней
                 
                 
                 # Для новых сотрудников (<1 месяца) - планируем опросы
@@ -349,9 +480,18 @@ async def schedule_polls():
                         schedule_poll_hire(scheduler, employee, 90, send_poll_after_3_month)
                         schedule_poll_hire(scheduler, employee, 180, send_poll_after_6_month)
                         schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
+                        schedule_poll_hire(scheduler, employee, 445, send_poll_after_18_month)
+                        schedule_poll_hire(scheduler, employee, 730, send_poll_after_24_month)
+                        schedule_poll_hire(scheduler, employee, 850, send_poll_after_30_month)
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
                         schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
-                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_1_to_3, 7, send_poll_after_14_days)
-                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_3_to_6, 12, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_1_to_3, 3, 2, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_3_to_6, 4, 3, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_6_to_12, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_12_to_18, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_18_to_24, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_24_to_30, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
                 
                 # Для работающих 1-3 месяца
                 elif 30 < days_employed < 90:
@@ -359,30 +499,91 @@ async def schedule_polls():
                         schedule_poll_hire(scheduler, employee, 90, send_poll_after_3_month)
                         schedule_poll_hire(scheduler, employee, 180, send_poll_after_6_month)
                         schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
+                        schedule_poll_hire(scheduler, employee, 445, send_poll_after_18_month)
+                        schedule_poll_hire(scheduler, employee, 730, send_poll_after_24_month)
+                        schedule_poll_hire(scheduler, employee, 850, send_poll_after_30_month)
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
                         schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
-                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_1_to_3, 7, send_poll_after_14_days)
-                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_3_to_6, 12, send_poll_after_14_days)
-                
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_1_to_3, 3, 2, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_3_to_6, 4, 3, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_6_to_12, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_12_to_18, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_18_to_24, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_24_to_30, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
+                        
                 # Для работающих 3-6 месяцев
                 elif 90 <= days_employed < 180:
                     if await is_user_available(employee.telegram_id):
                         schedule_poll_hire(scheduler, employee, 180, send_poll_after_6_month)
                         schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
+                        schedule_poll_hire(scheduler, employee, 445, send_poll_after_18_month)
+                        schedule_poll_hire(scheduler, employee, 730, send_poll_after_24_month)
+                        schedule_poll_hire(scheduler, employee, 850, send_poll_after_30_month)
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
                         schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
-                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_3_to_6, 12, send_poll_after_14_days)
-                
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_3_to_6, 4, 3, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_6_to_12, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_12_to_18, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_18_to_24, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_24_to_30, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
+                        
                 # Для работающих 6-12 месяцев 
                 elif 180 <= days_employed < 365:
                     if await is_user_available(employee.telegram_id):
                         schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
+                        schedule_poll_hire(scheduler, employee, 445, send_poll_after_18_month)
+                        schedule_poll_hire(scheduler, employee, 730, send_poll_after_24_month)
+                        schedule_poll_hire(scheduler, employee, 850, send_poll_after_30_month)
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
                         schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_6_to_12, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_12_to_18, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_18_to_24, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_24_to_30, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
                         
-                # Для работающих больше года       
-                else:
+                # Для работающих 12-18 месяцев       
+                elif 365 <= days_employed < 445:
                     if await is_user_available(employee.telegram_id):
-                        schedule_poll_hire(scheduler, employee, 365, send_poll_after_12_month)
+                        schedule_poll_hire(scheduler, employee, 445, send_poll_after_18_month)
+                        schedule_poll_hire(scheduler, employee, 730, send_poll_after_24_month)
+                        schedule_poll_hire(scheduler, employee, 850, send_poll_after_30_month)
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
                         schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
-            
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_12_to_18, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_18_to_24, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_24_to_30, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
+                
+                # Для работающих 18-24 месяцев       
+                elif 445 <= days_employed < 730:
+                    if await is_user_available(employee.telegram_id):
+                        schedule_poll_hire(scheduler, employee, 730, send_poll_after_24_month)
+                        schedule_poll_hire(scheduler, employee, 850, send_poll_after_30_month)
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
+                        schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_18_to_24, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_24_to_30, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
+                
+                # Для работающих 24-30 месяцев       
+                elif 730 <= days_employed < 850:
+                    if await is_user_available(employee.telegram_id):
+                        schedule_poll_hire(scheduler, employee, 850, send_poll_after_30_month)
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
+                        schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_24_to_30, 6, 4, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
+                
+                 # Для работающих 30-36 месяцев       
+                elif 850 <= days_employed < 1095:
+                    if await is_user_available(employee.telegram_id):
+                        schedule_poll_hire(scheduler, employee, 1095, send_poll_after_36_month)
+                        schedule_poll_tg(scheduler, employee, 14, send_poll_after_14_days)
+                        schedule_weekly_polls(scheduler, employee, start_weekly_polls_date_from_30_to_36, 6, 4, send_poll_after_14_days)
+
             except Exception as e:
                 logger.error(f"Ошибка обработки сотрудника {employee.id}: {e}")
                 continue

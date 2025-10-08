@@ -30,6 +30,22 @@ async def initialize_poll_data():
         name = "Опрос через 12 месяцев",
         submission_date = timedelta(days = 365)
     )
+    poll_after_18_month = Poll(
+        name = "Опрос через 18 месяцев",
+        submission_date = timedelta(days = 545)
+    )
+    poll_after_24_month = Poll(
+        name = "Опрос через 24 месяца",
+        submission_date = timedelta(days = 730)
+    )
+    poll_after_30_month = Poll(
+        name = "Опрос через 30 месяцев",
+        submission_date = timedelta(days = 850)
+    )
+    poll_after_36_month = Poll(
+        name = "Опрос через 36 месяцев",
+        submission_date = timedelta(days = 1095)
+    )
     poll_after_14_days = Poll(
         name = "Опрос через 14 дней",
         submission_date = timedelta(days = 14)
@@ -38,11 +54,19 @@ async def initialize_poll_data():
     await sync_to_async(poll_after_3_month.save)()
     await sync_to_async(poll_after_6_month.save)()
     await sync_to_async(poll_after_12_month.save)()
+    await sync_to_async(poll_after_18_month.save)()
+    await sync_to_async(poll_after_24_month.save)()
+    await sync_to_async(poll_after_30_month.save)()
+    await sync_to_async(poll_after_36_month.save)()
     await sync_to_async(poll_after_14_days.save)()
     poll_after_1_month = await sync_to_async(Poll.objects.get)(name = "Опрос через месяц")
     poll_after_3_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 3 месяца")
     poll_after_6_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 6 месяцев")
     poll_after_12_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 12 месяцев")
+    poll_after_18_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 18 месяцев")
+    poll_after_24_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 24 месяца")
+    poll_after_30_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 30 месяцев")
+    poll_after_36_month = await sync_to_async(Poll.objects.get)(name = "Опрос через 36 месяцев")
     poll_after_14_days = await sync_to_async(Poll.objects.get)(name = "Опрос через 14 дней")
     questions_for_poll_1_data = [
         "Как дела?", 
@@ -77,7 +101,7 @@ async def initialize_poll_data():
         "Полезен ли закрепленный за тобой наставник?",
         "Удалось ли принять участие в мероприятиях филиала?",
         "Чего тебе не хватает для улучшения реализации трудовой деятельности?",
-        "Может есть волнующие моменты, которые тебя беспокоят?"
+        "Возможно, есть какие-то ситуации или вопросы, которые вызывают у тебя волнение или тревогу?"
     ]
     questions_for_poll_6_data = [
         "Как обстоят дела в производственной среде?",
@@ -94,13 +118,61 @@ async def initialize_poll_data():
         "Есть ли ощущение комфорта и уверенности в рабочих процессах на сегодняшний день?",
         "Достаточны ли знания и навыки для выполнения поставленных задач?",
         "Комфортно ли тебе взаимодействовать с руководителем?",
+        "Удовлетворён ли ты уровнем заработной платы и условиями труда? Расскажи подробнее",
+        "Возможно, есть какие-то ситуации или вопросы, которые вызывают у тебя волнение или тревогу?"
+    ]
+    questions_for_poll_18_data = [
+        "Как обстоят дела в производственной среде?",
+        "Какие впечатления остались от первого периода работы?",
+        "Какие изменения помогли бы повысить эффективность производственной деятельности?",
+        "Есть ли ощущение комфорта и уверенности в рабочих процессах на сегодняшний день?",
+        "Достаточны ли знания и навыки для выполнения поставленных задач?",
+        "Нужна ли какая-нибудь дополнительная поддержка или обучение?",
+        "Комфортно ли тебе взаимодействовать с руководителем?",
+        "Как складываются отношения с коллегами?",
         "Устраивает ли тебя нынешняя организация твоего рабочего места? Комфортно ли тебе там находиться и продуктивно работать?",
+        "Заинтересован ли ты в повышении квалификации или получении дополнительного образования?",
+        "Может есть волнующие моменты, которые тебя беспокоят?"
+    ]
+    questions_for_poll_24_data = [
+        "Как обстоят дела в производственной среде?",
+        "Какие главные успехи выделил(а) бы за второй год работы?",
+        "Появилось ли ощущение уверенности в выбранной профессии и компании?",
+        "Возникали ли серьёзные трудности или конфликтные ситуации? Если да, как решал(а) их?",
+        "Планируешь ли получение дополнительной квалификации или переподготовку?",
+        "Полностью ли удовлетворены существующими возможностями карьерного роста?",
+        "Необходима ли помощь в регулировании нагрузок и снижении стресса?",
+        "Сохраняется ли лояльность к компании и желание остаться на длительный срок?",
+        "Чего бы хотелось добиться в последующие годы?"
+    ]
+    questions_for_poll_30_data = [
+        "Как обстоят дела в производственной среде?",
+        "Какие впечатления остались от первого периода работы?",
+        "Какие изменения помогли бы повысить эффективность производственной деятельности?",
+        "Чувствуешь ли ты сегодня комфорт и уверенность в выполнении рабочих процессов?",
+        "Включен(а) ли ты в резерв кадров?",
+        "Требуется ли дополнительная поддержка или обучение для повышения эффективности работы?",
+        "Как складываются взаимоотношения с руководителем?",
+        "Как складываются отношения с коллегами?",
+        "Устраивает ли тебя нынешняя организация твоего рабочего места?",
+        "Может есть волнующие моменты, которые тебя беспокоят?"
+    ]
+    questions_for_poll_36_data = [
+        "Назови три наиболее значимых результата твоего третьего года работы.",
+        "Какие впечатления остались от первого периода работы?",
+        "Какие изменения помогли бы повысить эффективность производственной деятельности?",
+        "Оставляет ли выполнение работы желаемый эффект и приносит удовольствие?",
+        "Имеется ли потребность в дополнительном обучении или развитии?",
+        "Удовлетворяют ли имеющиеся возможности карьерного роста?",
+        "Необходима ли поддержка для снижения стрессов и перегрузок?",
+        "Как складываются отношения с руководителем?",
+        "Сохраняется ли высокая степень лояльности к компании и желание продолжения сотрудничества?",
         "Может есть волнующие моменты, которые тебя беспокоят?"
     ]
     questions_for_poll_14_data = [
         "Как дела?",
         "Как обстоят дела с организацией твоей производственной деятельности? Опиши в нескольких предложениях",
-        "Возможно у тебя появились вопросы?"
+        "Возможно, у тебя появились вопросы?"
     ]
     for question_text in questions_for_poll_1_data:
         question = Question(
@@ -124,6 +196,30 @@ async def initialize_poll_data():
         question = Question(
             name=question_text,
             poll_id = poll_after_12_month.id
+        )
+        await sync_to_async(question.save)()
+    for question_text in questions_for_poll_18_data:
+        question = Question(
+            name=question_text,
+            poll_id = poll_after_18_month.id
+        )
+        await sync_to_async(question.save)()
+    for question_text in questions_for_poll_24_data:
+        question = Question(
+            name=question_text,
+            poll_id = poll_after_24_month.id
+        )
+        await sync_to_async(question.save)()
+    for question_text in questions_for_poll_30_data:
+        question = Question(
+            name=question_text,
+            poll_id = poll_after_24_month.id
+        )
+        await sync_to_async(question.save)()
+    for question_text in questions_for_poll_36_data:
+        question = Question(
+            name=question_text,
+            poll_id = poll_after_36_month.id
         )
         await sync_to_async(question.save)()
     for question_text in questions_for_poll_14_data:

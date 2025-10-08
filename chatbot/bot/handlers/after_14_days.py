@@ -77,7 +77,7 @@ async def start_poll_after_14_days(message: Message, state: FSMContext):
       await asyncio.sleep(short_delay)
       await message.answer('Приветствую тебя, молодой специалист! 👋\n\n'
                            'Это я – Газоптикум, твой личный цифровой помощник! \n'
-                           'Мне интересно, как у тебя дела?\n'
+                           'Расскажи, как проходят первы рабочие дни?\n'
                            'Отметь в опросе ниже ⬇',)
       await message.answer_poll(
          question="Как у тебя дела?",
@@ -101,7 +101,7 @@ async def poll_data(poll_answer: PollAnswer):
    employee_answer = Answer(
       name=selected_option_text,
       login_id=employee.id,
-      question_id=46
+      question_id=82
    )
    await sync_to_async(employee_answer.save)()
    
@@ -112,7 +112,7 @@ async def how_are_you(message: Message, state: FSMContext):
    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
       await asyncio.sleep(short_delay)
       await message.answer(
-         "Как обстоят дела с организацией твоей производственной деятельности? Опиши в нескольких предложениях ⬇",
+         "Как обстоят дела с организацией твоей производственной деятельности? Возможно что-то идет не так, как хотелось бы?  Опиши в нескольких предложениях ⬇",
          reply_markup=ReplyKeyboardRemove()
       )
    await state.set_state(Form_14.question_3)
@@ -120,9 +120,9 @@ async def how_are_you(message: Message, state: FSMContext):
 
 @after_14_days_router.message(F.text, Form_14.question_3)
 async def question_3(message: Message, state: FSMContext):
-   await handle_question(message, state, Form_14.result, "Возможно у тебя появились вопросы?", 48)
+   await handle_question(message, state, Form_14.result, "Возможно у тебя появились вопросы?", 83)
 
 
 @after_14_days_router.message(F.text, Form_14.result)
 async def result(message: Message, state: FSMContext):
-   await finish_poll(message, state, 49)
+   await finish_poll(message, state, 84)

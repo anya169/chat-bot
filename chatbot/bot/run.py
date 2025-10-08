@@ -6,6 +6,10 @@ from handlers.after_1_month import after_1_month_router
 from handlers.after_3_month import after_3_month_router
 from handlers.after_6_month import after_6_month_router
 from handlers.after_12_month import after_12_month_router
+from handlers.after_18_month import after_18_month_router
+from handlers.after_24_month import after_24_month_router
+from handlers.after_30_month import after_30_month_router
+from handlers.after_36_month import after_36_month_router
 from handlers.after_14_days import after_14_days_router
 from handlers.create_mailing import mailing_router
 from polls import initialize_poll_data
@@ -33,6 +37,10 @@ async def main():
     dp.include_router(after_3_month_router)
     dp.include_router(after_6_month_router) 
     dp.include_router(after_12_month_router) 
+    dp.include_router(after_18_month_router)
+    dp.include_router(after_24_month_router)
+    dp.include_router(after_30_month_router)
+    dp.include_router(after_36_month_router)
     await set_default_command(bot)
     await bot.delete_webhook(drop_pending_updates = True)
     asyncio.create_task(schedule_polls())

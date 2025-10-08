@@ -78,7 +78,7 @@ async def finish_poll(message: Message, state: FSMContext, question_id = None):
          "Согласно внутренним регламентирующим документам, все молодые специалисты компании проходят психологическое тестирование."
          "тестирование для самоанализа личного профиля.\n\n"
          "Для прохождения теста перейди по следующей ссылке: https://forms.yandex.ru/cloud/665e766290fa7b1d6999c9a8/\n\n"
-         "После завершения тестирования вернись в диалог и подтверди выполнение, нажав кнопку «Я заполнил(а)».\n\n",
+         "После окончания тестирования возвращайся сюда и подтвердите завершение нажатием кнопки «Я заполнил(а)». Спасибо за активное взаимодействие! До новых встреч!\n\n",
          reply_markup = await done_kb(message.from_user.id)
       )
    await end(message, state)
@@ -133,11 +133,11 @@ async def question_4(message: Message, state: FSMContext):
 
 @after_12_month_router.message(F.text, Form_12.question_5)
 async def question_5(message: Message, state: FSMContext):
-   await handle_question(message, state, Form_12.question_6, "Устраивает ли тебя нынешняя организация твоего рабочего места? Комфортно ли тебе там находиться и продуктивно работать?", 43)
+   await handle_question(message, state, Form_12.question_6, "Удовлетворён ли ты уровнем заработной платы и условиями труда? Расскажи подробнее", 43)
 
 @after_12_month_router.message(F.text, Form_12.question_6)
 async def question_6(message: Message, state: FSMContext):
-   await handle_question(message, state, Form_12.result, "Может есть волнующие моменты, которые тебя беспокоят?", 44)
+   await handle_question(message, state, Form_12.result, "Возможно, есть какие-то ситуации или вопросы, которые вызывают у тебя волнение или тревогу?", 44)
 
 @after_12_month_router.message(F.text, Form_12.result)
 async def result(message: Message, state: FSMContext):
