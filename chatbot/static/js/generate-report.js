@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
    const filterCheckbox = document.getElementById('filter_own_employees');
    const selectAllCheckbox = document.getElementById('select_all');
+   const selectAllPoll = document.getElementById('select_all_polls');
    //обработчик изменения состояния чекбокса
    filterCheckbox.addEventListener('change', filterRows);
    //галочка "только свои сотрудники"
@@ -23,6 +24,21 @@ document.addEventListener('DOMContentLoaded', function() {
          filterCheckbox.checked = false;
          filterRows();
       }  
+   }
+
+   selectAllPoll.addEventListener('change', selectAllPolls);
+   //галочка "выбрать все" для опросов
+   
+   function selectAllPolls() {
+      const dropdownMenu = this.closest('.dropdown-menu');
+      dropdownMenu.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+         if (selectAllPoll.checked == true){
+            checkbox.checked = true;
+         } else {
+            checkbox.checked = false;
+         }
+         
+      });
    }
    
    //обработка всех выпадающих списков с галочками

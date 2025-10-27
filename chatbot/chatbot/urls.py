@@ -27,6 +27,7 @@ urlpatterns = [
     path('mailing/<int:mailing_id>/', mailing, name='mailing'),
     path('get_mailings/', get_mailings, name='get_mailings'),
     path('delete_mailing/', delete_mailing, name='delete_mailing'),
+    path('delete_employee/', delete_employee, name='delete_employee'),
     path('send_mailing_to_employee/', send_mailing_to_employee, name='send_mailing_to_employee'),
 ]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -26,6 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
       
 async def main():
+    scheduler = await schedule_polls()
+    await asyncio.sleep(3)
     #await initialize_poll_data() # использовать функцию только при первом запуске, потом нужно закомментировать
     #await initialize_filials_data() # использовать функцию только при первом запуске, потом нужно закомментировать
     dp.include_router(start_router)
@@ -43,7 +45,6 @@ async def main():
     dp.include_router(after_36_month_router)
     await set_default_command(bot)
     await bot.delete_webhook(drop_pending_updates = True)
-    asyncio.create_task(schedule_polls())
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

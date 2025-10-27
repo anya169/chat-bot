@@ -7,6 +7,7 @@
    <link rel="stylesheet" href="{% static '/css/common.css' %}">
    <link rel="stylesheet" href="{% static '/css/tables.css' %}">
    <link rel="stylesheet" href="{% static '/css/employee.css' %}">
+   <link rel="stylesheet" href="{% static '/css/generate-report.css' %}?v={% now 'U' %}">
 </head>
 <body class='layout'>
    {% block sidebar %}
@@ -27,6 +28,7 @@
             <div class="employee__info">Дата первого обращения к боту: {{ employee.telegram_registration_date|date:"d.m.Y"|default:"-" }}</div> 
             <div class="employee__info">Количество пройденных опросов: {{ count|default:"-" }}</div> 
          </div>
+         <button class="button" id="delete-employee" value="{{ employee.id }}">Удалить сотрудника</button> 
       </div>
 
       <h3>Пройденные опросы</h3>
@@ -106,7 +108,26 @@
                <div>Не пройдено ни одного опроса</div>
             {% endfor %}
          </div>
-      </div>   
+      </div>  
+      <!-- Модальное окно подтверждения удаления -->
+      <div id="deletingModal" class="modal" style="display: none;">
+         <div class="modal-content">
+            <span class="close">&times;</span>
+            <h4>Вы уверены, что хотите удалить сотрудника?</h4>
+                           
+            <div class="modal-body">                  
+               <div class="modal-buttons" style="margin-top: 20px;">
+                  <button id="deleteEmployee" class="button">Подтвердить</button>
+                  <button id="cancelDeleting" class="button button-secondary">Отмена</button>
+               </div>
+            </div>
+         </div>
+      </div> 
+      
    </main>
+   <script src="{% static 'js/delete-employee.js' %}"></script>
 </body>
 </html>
+<script>
+  const DELETE_EMPLOYEE_URL = "{% url 'delete_employee' %}";
+</script>

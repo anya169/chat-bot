@@ -24,6 +24,13 @@
                </button>
                <div class="dropdown-menu" id="pollDropdown-menu" aria-labelledby="pollDropdown">
                   <button class="reset-button">Сбросить все</button>
+                  <div class="dropdown-item">
+                     <label class="checkbox-container">
+                        <input type="checkbox" name="poll_filter" id="select_all_polls">
+                        <span class="checkmark"></span>
+                        <span>Выбрать все</span> 
+                     </label>
+                  </div>
                   {% for poll in polls %}
                   <div class="dropdown-item">
                      <label class="checkbox-container">

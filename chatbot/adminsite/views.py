@@ -222,6 +222,11 @@ def employee(request, employee_id):
       first_month_date = hire_date + timedelta(days=30)
       third_month_date = hire_date + timedelta(days=90)
       sixth_month_date = hire_date + timedelta(days=180)
+      twelfth_month_date = hire_date + timedelta(days=365)
+      eighteenth_month_date = hire_date + timedelta(days=545)
+      twentyfourth_month_date = hire_date + timedelta(days=730)
+      thirtieth_month_date = hire_date + timedelta(days=910)
+      thirtysixth_month_date = hire_date + timedelta(days=1095)
       
       for answer in week_answers:
          submission_date = answer.submission_date.date()
@@ -233,6 +238,17 @@ def employee(request, employee_id):
             period = 'Между 1 и 3 месяцами'
          elif third_month_date <= submission_date < sixth_month_date:
             period = 'Между 3 и 6 месяцами'
+         elif sixth_month_date <= submission_date < twelfth_month_date:
+            period = 'Между 6 и 12 месяцами'
+         elif twelfth_month_date <= submission_date < eighteenth_month_date:
+            period = 'Между 12 и 18 месяцами'
+         elif eighteenth_month_date <= submission_date < twentyfourth_month_date:
+            period = 'Между 18 и 24 месяцами'
+         elif twentyfourth_month_date <= submission_date < thirtieth_month_date:
+            period = 'Между 24 и 30 месяцами'
+         elif thirtieth_month_date <= submission_date < thirtysixth_month_date:
+            period = 'Между 30 и 36 месяцами'
+
          else:
             continue  
          
@@ -492,4 +508,19 @@ def get_mailings(request):
    return JsonResponse(list(mailings), safe=False)
 
 
+   
+#удаление сотрудника
+def delete_employee(request):
+   if request.method == 'POST':
+      try:
+         data = json.loads(request.body)
+         employee_id = data.get('employee_id')
+         employee = Employee.objects.filter(id = employee_id ).delete()
+         return JsonResponse({
+            'success': True,
+            'message': 'Сотрудник успешно удален'
+        })
+         
+      except Exception as e:
+         return JsonResponse({'Ошибка': str(e)}, status=400)
    
