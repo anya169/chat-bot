@@ -14,7 +14,7 @@ import sys
 from asgiref.sync import sync_to_async
 
 
-from core.models import Employee, Answer
+from core.models import Employee, Answer, EmployeeTest
 
 # время, через которое бот отправит сообщение
 short_delay = 1
@@ -80,6 +80,10 @@ async def finish_poll(message: Message, state: FSMContext, question_id = None):
             "Для прохождения теста перейди по ссылке: https://forms.yandex.ru/u/666affe3c417f301ddc2a6a9 .\n\n"
             "Итоги самооценки будут предоставлены в виде отчета, который я направлю тебе по итогам обработки 👌\n\n"
             "Благодарю за сотрудничество! До встречи!"
+        )
+        employee_test = await sync_to_async(EmployeeTest.objects.create)(
+            test_name="Тестирование после 6 месяцев",
+            employee =  employee
         )
     await state.clear()
 

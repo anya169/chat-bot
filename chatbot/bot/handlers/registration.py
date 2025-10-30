@@ -19,7 +19,7 @@ from asgiref.sync import sync_to_async
 sys.path.append('C:/chat-bot/chatbot')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chatbot.settings')
 django.setup()
-from core.models import Employee, Filial
+from core.models import Employee, Filial, EmployeeTest
 
 # время, через которое бот отправит сообщение
 short_delay = 1
@@ -141,6 +141,7 @@ async def capture_curator_information(message: Message, state: FSMContext):
             telegram_registration_date=datetime.now().date(),
             curator_login = curator_login
         )
+        await state.update_data(employee_id = employee.id)
         await asyncio.sleep(short_delay)
     except Exception as e:
         print(f"Ошибка при сохранении данных: {e}")
@@ -192,6 +193,14 @@ async def capture_task(message: Message, state: FSMContext):
 # бот присылает информацию о welcome-дне
 async def capture_welcome_day_information(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot = bot, chat_id = message.chat.id):
+        data = await state.get_data()
+        emp_id = data.get('employee_id')
+        get_employee = sync_to_async(Employee.objects.get)
+        employee = await get_employee(id=emp_id)
+        employee_test = await sync_to_async(EmployeeTest.objects.create)(
+            test_name="Тестирование при регистрации",
+            employee =  employee
+        )
         data = await state.get_data()
         await asyncio.sleep(short_delay)
         await message.answer(f'{data.get("name")}, спасибо за прохождение тестирования.\n\n'

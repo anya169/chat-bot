@@ -27,9 +27,9 @@ _scheduler_instance = None
 def get_scheduler():
     """Возвращает глобальный экземпляр планировщика"""
     global _scheduler_instance
-    logger.info(f"📋 get_scheduler() возвращает: {_scheduler_instance}")
+    logger.info(f"get_scheduler() возвращает: {_scheduler_instance}")
     if _scheduler_instance:
-        logger.info(f"⚡ Планировщик running: {_scheduler_instance.running}")
+        logger.info(f"running: {_scheduler_instance.running}")
     return _scheduler_instance
 
 async def has_completed_poll(employee_id, poll_name):
@@ -92,9 +92,14 @@ async def send_poll_after_14_days(employee_id):
                 chat_id=employee.telegram_id,
                 text="Как обстоят дела с организацией твоей производственной деятельности? Возможно что-то идет не так, как хотелось бы? Опиши в нескольких предложениях ⬇"
             )
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Краткий опрос"
+            )
+            await sync_to_async(bot_send.save)()
             await state.set_state(Form_14.question_3)
             logger.info(f"Опрос через 14 дней отправлен сотруднику {employee_id}")
-
+            
         except Exception as e:
             from bot.config import add_to_blocked
             add_to_blocked(employee.telegram_id)
@@ -121,7 +126,11 @@ async def send_poll_after_1_month(employee_id):
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
                 reply_markup=await ready_kb(employee.telegram_id)
             )
-            
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через месяц"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 1 месяц отправлен сотруднику {employee_id}")
 
         except Exception as e:
@@ -155,6 +164,11 @@ async def send_poll_after_3_month(employee_id):
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
                 reply_markup=await ready_kb(employee.telegram_id)
             )
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через 3 месяца"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 3 месяца отправлен сотруднику {employee_id}")
         except Exception as e:
             from bot.config import add_to_blocked
@@ -186,6 +200,11 @@ async def send_poll_after_6_month(employee_id):
                     'Готов(а)? Нажимай кнопку «Готов(а)»',
                 reply_markup=await ready_kb(employee.telegram_id)
             )
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через 6 месяцев"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 6 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
             from bot.config import add_to_blocked
@@ -216,7 +235,11 @@ async def send_poll_after_12_month(employee_id):
                            'Ты проделал большую работу и наверняка успел накопить много полезных знаний и опыта. \n'
                            'Поделись впечатлениями о первом рабочем году, расскажи о достижениях и успехах, которыми гордишься больше всего. А также поделись идеями, как мы можем сделать нашу совместную работу ещё эффективнее и комфортнее.\n'
                            'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = await ready_kb(employee.telegram_id))
-            
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через 12 месяцев"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 12 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
             from bot.config import add_to_blocked
@@ -246,7 +269,11 @@ async def send_poll_after_18_month(employee_id):
                            'Позади уже немало ценной практики, впереди ждут новые горизонты и профессиональные вершины! \n'
                            'Поделись своим мнением о сегодняшних рабочих процессах и предложи идеи, как сделать твою работу еще интересней и продуктивней.\n'
                            'Готов(а)? Нажимай кнопку «Готов(а)»', reply_markup = await ready_kb(employee.telegram_id))
-            
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через 18 месяцев"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 18 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
             from bot.config import add_to_blocked
@@ -276,7 +303,11 @@ async def send_poll_after_24_month(employee_id):
                            'Прошло уже целых два года — ты прошёл огромный путь, доказал свою преданность профессии и сделал значительный вклад в развитие компании. Впереди ждут новые рубежи и захватывающие испытания!\n'
                            'Поделись мыслями о нынешней работе, расскажи, как видишь своё дальнейшее развитие и как можно сделать рабочие процессы ещё более интересными и эффективными.\n'
                            'Готов(а) к обсуждению и новому этапу развития? Жми кнопку «Готов(а)»!', reply_markup = await ready_kb(employee.telegram_id))
-            
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через 24 месяца"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 24 месяца отправлен сотруднику {employee_id}")
         except Exception as e:
             from bot.config import add_to_blocked
@@ -305,7 +336,11 @@ async def send_poll_after_30_month(employee_id):
                            'Поздравляю с преодолением важной отметки — 2,5 года работы в нашем дружном коллективе! 🌟\n\n'
                            'Уже многое успел, впереди — ещё больше интересного. Расскажи, как тебе работается сейчас и какие идеи есть для улучшений.\n\n'
                            'Готов(а)?', reply_markup = await ready_kb(employee.telegram_id))
-            
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через 30 месяцев"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 30 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
             from bot.config import add_to_blocked
@@ -336,7 +371,11 @@ async def send_poll_after_36_month(employee_id):
                            'Но сегодня отличный повод вспомнить пройденный путь и обсудить дальнейшие планы.\n'
                            'Давай поговорим о том, как тебе работается сейчас, какие успехи достиг, и какие предложения у тебя есть для повышения эффективности и интереса в твоей работе!\n'
                            'Что скажешь? Нажми «Готов»!', reply_markup = await ready_kb(employee.telegram_id))
-            
+            bot_send = BotSendPoll(
+                employee = employee,
+                poll_name = "Опрос через 36 месяцев"
+            )
+            await sync_to_async(bot_send.save)()
             logger.info(f"Опрос через 36 месяцев отправлен сотруднику {employee_id}")
         except Exception as e:
             from bot.config import add_to_blocked

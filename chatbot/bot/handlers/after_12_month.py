@@ -14,7 +14,7 @@ import sys
 from asgiref.sync import sync_to_async
 
 
-from core.models import Employee, Answer
+from core.models import Employee, Answer, EmployeeTest
 
 # время, через которое бот отправит сообщение
 short_delay = 1
@@ -81,7 +81,7 @@ async def finish_poll(message: Message, state: FSMContext, question_id = None):
          "После окончания тестирования возвращайся сюда и подтвердите завершение нажатием кнопки «Я заполнил(а)». Спасибо за активное взаимодействие! До новых встреч!\n\n",
          reply_markup = await done_kb(message.from_user.id)
       )
-   await end(message, state)
+   await state.clear()
 
 @after_12_month_router.message(F.text == "Я заполнил(а)")   
 async def end(message: Message, state: FSMContext):
@@ -90,6 +90,12 @@ async def end(message: Message, state: FSMContext):
       await message.answer(
          "Спасибо за ваше понимание и активное взаимодействие! До новых встреч!",
          reply_markup = ReplyKeyboardRemove()
+      )
+      telegram_id = message.from_user.id
+      employee = await get_employee(telegram_id)
+      employee_test = await sync_to_async(EmployeeTest.objects.create)(
+         test_name="Тестирование после 12 месяцев",
+         employee =  employee
       )
    await state.clear()  
 
