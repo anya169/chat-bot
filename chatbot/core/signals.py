@@ -38,4 +38,8 @@ async def async_send_message(chat_id, text):
         logger.error(f"Error sending Telegram message: {e}")
         raise
 
-  
+@receiver(post_save, sender=Employee)
+def handle_new_employee(sender, instance, created, **kwargs):
+    if created:
+        print(f"New employee signal received for {instance.id}")
+          

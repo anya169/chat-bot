@@ -31,6 +31,26 @@
          <button class="button" id="delete-employee" value="{{ employee.id }}">Удалить сотрудника</button> 
       </div>
 
+      <h3>Пройденные тестирования</h3>
+      <div class="employees-panel">
+         <div class="account">
+            {% for test in tests %}
+               <div class="employee__info">{{ test.test_name }}</div>
+            {% endfor %}
+         </div>
+      </div>
+
+      <h3>Отправленные ботом опросы</h3>
+      <div class="employees-panel">
+         <div class="account">
+            {% for item in bot_data %}
+               <div class="employee__info">{{ item.name }} - {{ item.send_date }}</div>
+            {% empty %}
+               <div class="employee__info">Опросы не отправлялись</div>
+            {% endfor %}
+         </div>
+      </div>
+
       <h3>Пройденные опросы</h3>
       
       <!-- Еженедельный опрос -->

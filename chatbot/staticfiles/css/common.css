@@ -127,3 +127,9 @@ a:hover {
 .logoutButton{
    bottom: 0px;
 }
+
+.new_info {
+   margin-left: -35px;
+   font-size: 16px;
+   color: #0078C1;
+}

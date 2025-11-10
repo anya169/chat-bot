@@ -203,6 +203,21 @@ def download_report(request):
 def employee(request, employee_id):
    employee = Employee.objects.filter(id=employee_id).first()
    
+   #пройденные тестирования
+   tests = EmployeeTest.objects.filter(employee=employee)
+   
+   bot_data = []
+   # отправленные ботом опросы
+   bot_sendings = BotSendPoll.objects.filter(employee=employee).order_by('-send_date')
+   for sending in bot_sendings:
+      localized_date = timezone.localtime(sending.send_date)
+      send_date = localized_date.strftime('%d.%m.%Y %H:%M')
+      name = sending.poll_name
+      bot_data.append({
+         'name': name,
+         'send_date': send_date
+      })
+   
    weekpoll = Poll.objects.filter(name="Опрос через 14 дней").first()
    
    #получаем ответы сотрудника на еженедельный опрос
@@ -263,7 +278,7 @@ def employee(request, employee_id):
    grouped_weekly_data = {}
    for item in weekly_answers_data:
       period = item['period']
-      date_str = item['date'].strftime('%Y-%m-%d')
+      date_str = item['date'].strftime('%d-%m-%Y')
       
       if period not in grouped_weekly_data:
          grouped_weekly_data[period] = {}
@@ -300,12 +315,14 @@ def employee(request, employee_id):
    
    return render(request, 'personal_account/employee.html', {
       'employee': employee,
+      'tests': tests,
       'polls_data': polls_data,
       'count': count,
       'weekpoll': weekpoll,
       'grouped_weekly_data': grouped_weekly_data,
       'weekly_questions': weekpoll.question_set.all(),
-      'has_weekly_answers': bool(weekly_answers_data)
+      'has_weekly_answers': bool(weekly_answers_data),
+      'bot_data': bot_data
    })
 
 @login_required   
@@ -516,6 +533,12 @@ def delete_employee(request):
          data = json.loads(request.body)
          employee_id = data.get('employee_id')
          employee = Employee.objects.filter(id = employee_id ).delete()
+         
+         answers = Answer.objects.filter(login = id).delete()
+         special_questions = Special_Question.objects.filter(employee = id).delete()
+         employee_tests = EmployeeTest.objects.filter(employee = id).delete()
+         employee_polls = BotSendPoll.objects.filter(employee = id).delete()
+         
          return JsonResponse({
             'success': True,
             'message': 'Сотрудник успешно удален'

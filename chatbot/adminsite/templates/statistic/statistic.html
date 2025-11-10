@@ -19,6 +19,13 @@
          {% for blocker in blockers %}
             <div>{{ blocker.name }}</div>
          {% endfor %}
+      </div>
+      <div class="employees-panel">
+         <h4>Новые пользователи за последнюю неделю:</h4>
+         {% for emp in week_data %}
+            <div>{{ emp.new_employee_name}} - {{ emp.new_employee_date }}</div>
+         {% endfor %}
+      </div>
    </main>
 </body>
 </html> 

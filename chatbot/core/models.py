@@ -162,4 +162,34 @@ class MailingAttachment(models.Model):
       verbose_name = 'Вложение'
       verbose_name_plural = 'Вложения'
       
-            
+      
+class EmployeeTest(models.Model):
+   objects = models.Manager()
+   
+   employee = models.ForeignKey('Employee', null=True, blank=True, on_delete=models.DO_NOTHING, verbose_name='ID')
+   test_name = models.CharField(null=True, blank=True,verbose_name='Название теста')
+   
+   def __str__(self):
+      return self.test_name
+   
+   class Meta:
+      db_table = 'EmployeeTest'
+      verbose_name = 'Тестирование'
+      verbose_name_plural = 'Тестирования'      
+      
+      
+class BotSendPoll(models.Model):
+   objects = models.Manager()
+   
+   employee = models.ForeignKey('Employee', null=True, blank=True, on_delete=models.DO_NOTHING, verbose_name='ID')
+   poll_name = models.CharField(null=True, blank=True,verbose_name='Название опроса')
+   send_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата отправки')
+   def __str__(self):
+      return self.test_name
+   
+   class Meta:
+      db_table = 'BotSendPoll'
+      verbose_name = 'Отправленный опрос'
+      verbose_name_plural = 'Отправленные опросы'      
+      
+                        

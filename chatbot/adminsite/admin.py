@@ -73,9 +73,7 @@ class AnswerAdmin(admin.ModelAdmin):
       return obj.question.poll.name if obj.question.poll else '-'
    get_poll_name.short_description = 'Опрос'  
    get_poll_name.admin_order_field = 'poll__name'
-   list_filter = ('submission_date', 'question_id')
    search_fields = ('login_id', 'question_id')  
-   ordering = ('submission_date', )
    
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):   

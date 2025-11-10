@@ -72,6 +72,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.sidebar_notifications',
+                'core.context_processors.sidebar_new_employee',
+                'core.context_processors.sidebar_new_employees_in_week',
             ],
         },
     },
